@@ -8,7 +8,7 @@
 // #define DEBUG_ALL
 
 // Disables all debug options (except PUPPYPRINT)
-#define DISABLE_ALL
+//#define DISABLE_ALL
 
 // TEST LEVEL
 // Uncomment this define and set a test level in order to boot straight into said level.
@@ -17,13 +17,13 @@
 // #define TEST_LEVEL LEVEL_BOB
 
 // Enable debug level select. Hold L while the game boots to turn it on.
-#define DEBUG_LEVEL_SELECT
+//#define DEBUG_LEVEL_SELECT
 
 // Enable debug free move (DPad up to enter, A to exit).
-#define ENABLE_DEBUG_FREE_MOVE
+//#define ENABLE_DEBUG_FREE_MOVE
 
 // Include a custom, enhanced performance profiler. (Enables PUPPYPRINT by default in config_safeguards).
-// #define PUPPYPRINT_DEBUG 1
+#define PUPPYPRINT_DEBUG 1
 
 // Use cycles instead of microseconds in Puppyprint debug output.
 // #define PUPPYPRINT_DEBUG_CYCLES
@@ -37,11 +37,11 @@
 // #define VISUAL_DEBUG
 
 // Open all courses and doors. Used for debugging purposes to unlock all content.
-#define UNLOCK_ALL
+// #define UNLOCK_ALL
 
 // Same as above, but also reads all save file flags as complete.
 // This will not overwrite existing save file data unless you save over it.
-// #define COMPLETE_SAVE_FILE
+#define COMPLETE_SAVE_FILE
 
 // Removes the limit on FPS
 // #define UNLOCK_FPS

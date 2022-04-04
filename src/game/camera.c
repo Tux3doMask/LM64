@@ -2877,23 +2877,6 @@ void update_camera(struct Camera *c) {
 #endif
     gCamera = c;
     update_camera_hud_status(c);
-    if (c->cutscene == CUTSCENE_NONE
-#ifdef PUPPYCAM
-        && !gPuppyCam.enabled
-#endif
-        && gCurrentArea->camera->mode != CAMERA_MODE_INSIDE_CANNON) {
-        // Only process R_TRIG if 'fixed' is not selected in the menu
-        if (cam_select_alt_mode(CAM_SELECTION_NONE) == CAM_SELECTION_MARIO) {
-            if (gPlayer1Controller->buttonPressed & R_TRIG) {
-                if (set_cam_angle(0) == CAM_ANGLE_LAKITU) {
-                    set_cam_angle(CAM_ANGLE_MARIO);
-                } else {
-                    set_cam_angle(CAM_ANGLE_LAKITU);
-                }
-            }
-        }
-        play_sound_if_cam_switched_to_lakitu_or_mario();
-    }
 
     // Initialize the camera
     sStatusFlags &= ~CAM_FLAG_FRAME_AFTER_CAM_INIT;
@@ -2902,32 +2885,7 @@ void update_camera(struct Camera *c) {
         gCameraMovementFlags &= ~CAM_MOVE_INIT_CAMERA;
         sStatusFlags |= CAM_FLAG_FRAME_AFTER_CAM_INIT;
     }
-
-#ifdef PUPPYCAM
-    if (!gPuppyCam.enabled || c->cutscene != CUTSCENE_NONE || gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
-#endif
-    // Store previous geometry information
-    sMarioGeometry.prevFloorHeight = sMarioGeometry.currFloorHeight;
-    sMarioGeometry.prevCeilHeight = sMarioGeometry.currCeilHeight;
-    sMarioGeometry.prevFloor = sMarioGeometry.currFloor;
-    sMarioGeometry.prevCeil = sMarioGeometry.currCeil;
-    sMarioGeometry.prevFloorType = sMarioGeometry.currFloorType;
-    sMarioGeometry.prevCeilType = sMarioGeometry.currCeilType;
-
-    find_mario_floor_and_ceil(&sMarioGeometry);
-    gCollisionFlags |= COLLISION_FLAG_CAMERA;
-    vec3f_copy(c->pos, gLakituState.goalPos);
-    vec3f_copy(c->focus, gLakituState.goalFocus);
-
-    c->yaw = gLakituState.yaw;
-    c->nextYaw = gLakituState.nextYaw;
-    c->mode = gLakituState.mode;
-    c->defMode = gLakituState.defMode;
-#ifdef ENABLE_VANILLA_CAM_PROCESSING
-    camera_course_processing(c);
-#else
-    if (gCurrDemoInput != NULL) camera_course_processing(c);
-#endif
+	
     sCButtonsPressed = find_c_buttons_pressed(sCButtonsPressed, gPlayer1Controller->buttonPressed, gPlayer1Controller->buttonDown);
 
     if (c->cutscene != CUTSCENE_NONE) {
@@ -2944,179 +2902,34 @@ void update_camera(struct Camera *c) {
             }
         }
     }
-    // If not in a cutscene, do mode processing
+	
+    // If not in a cutscene, do custom camera
     if (c->cutscene == CUTSCENE_NONE) {
         sYawSpeed = 0x400;
+		Vec3f pos;
+        s16 camYaw = DEGREES(0);
+		s16 pitch = look_down_slopes(camYaw);
+		f32 posY;
+		f32 focusY;
+		f32 yOff = 125.f;
+		f32 baseDist = 1000.f;
 
-        if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
-            switch (c->mode) {
-                case CAMERA_MODE_BEHIND_MARIO:
-                    mode_behind_mario_camera(c);
-                    break;
+		calc_y_to_curr_floor(&posY, 1.f, 200.f, &focusY, 0.9f, 200.f);
+		focus_on_mario(c->focus, pos, posY + yOff, focusY + yOff, sLakituDist + baseDist, pitch, camYaw);
 
-                case CAMERA_MODE_C_UP:
-                    mode_c_up_camera(c);
-                    break;
-
-                case CAMERA_MODE_WATER_SURFACE:
-                    mode_water_surface_camera(c);
-                    break;
-
-                case CAMERA_MODE_INSIDE_CANNON:
-                    mode_cannon_camera(c);
-                    break;
-
-                default:
-                    mode_mario_camera(c);
-            }
-        } else {
-            switch (c->mode) {
-                case CAMERA_MODE_BEHIND_MARIO:
-                    mode_behind_mario_camera(c);
-                    break;
-
-                case CAMERA_MODE_C_UP:
-                    mode_c_up_camera(c);
-                    break;
-
-                case CAMERA_MODE_WATER_SURFACE:
-                    mode_water_surface_camera(c);
-                    break;
-
-                case CAMERA_MODE_INSIDE_CANNON:
-                    mode_cannon_camera(c);
-                    break;
-
-                case CAMERA_MODE_8_DIRECTIONS:
-                    mode_8_directions_camera(c);
-                    break;
-
-                case CAMERA_MODE_RADIAL:
-                    mode_radial_camera(c);
-                    break;
-
-                case CAMERA_MODE_OUTWARD_RADIAL:
-                    mode_outward_radial_camera(c);
-                    break;
-
-                case CAMERA_MODE_CLOSE:
-                    mode_lakitu_camera(c);
-                    break;
-
-                case CAMERA_MODE_FREE_ROAM:
-                    mode_lakitu_camera(c);
-                    break;
-
-                case CAMERA_MODE_BOSS_FIGHT:
-                    mode_boss_fight_camera(c);
-                    break;
-
-                case CAMERA_MODE_PARALLEL_TRACKING:
-                    mode_parallel_tracking_camera(c);
-                    break;
-
-                case CAMERA_MODE_SLIDE_HOOT:
-                    mode_slide_camera(c);
-                    break;
-
-                case CAMERA_MODE_FIXED:
-                    mode_fixed_camera(c);
-                    break;
-
-                case CAMERA_MODE_SPIRAL_STAIRS:
-                    mode_spiral_stairs_camera(c);
-                    break;
-            }
-        }
+		lakitu_zoom(400.f, 0x900);
+		c->yaw = DEGREES(0);
+		c->pos[0] = pos[0];
+		c->pos[2] = pos[2];
+		set_camera_height(c, pos[1]);
+        
     }
-#ifdef PUPPYCAM
-    }
-#endif
     // Start any Mario-related cutscenes
     start_cutscene(c, get_cutscene_from_mario_status(c));
     gCollisionFlags &= ~COLLISION_FLAG_CAMERA;
-#ifdef PUPPYCAM
-    if (!gPuppyCam.enabled || c->cutscene != 0 || gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
-#endif
-#ifdef ENABLE_VANILLA_LEVEL_SPECIFIC_CHECKS
-    if (gCurrLevelNum != LEVEL_CASTLE) {
-#endif
-        // If fixed camera is selected as the alternate mode, then fix the camera as long as the right
-        // trigger is held
-        if ((c->cutscene == CUTSCENE_NONE &&
-            (gPlayer1Controller->buttonDown & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED)
-            || (gCameraMovementFlags & CAM_MOVE_FIX_IN_PLACE)
-            || (sMarioCamState->action) == ACT_GETTING_BLOWN) {
-
-            // If this is the first frame that R_TRIG is held, play the "click" sound
-            if (c->cutscene == CUTSCENE_NONE && (gPlayer1Controller->buttonPressed & R_TRIG)
-                && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
-                sCameraSoundFlags |= CAM_SOUND_FIXED_ACTIVE;
-                play_sound_rbutton_changed();
-            }
-
-            // Fixed mode only prevents Lakitu from moving. The camera pos still updates, so
-            // Lakitu will fly to his next position as normal whenever R_TRIG is released.
-            gLakituState.posHSpeed = 0.f;
-            gLakituState.posVSpeed = 0.f;
-
-            vec3f_get_yaw(gLakituState.focus, gLakituState.pos, &c->nextYaw);
-            c->yaw = c->nextYaw;
-            gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
-        } else {
-            // Play the "click" sound when fixed mode is released
-            if (sCameraSoundFlags & CAM_SOUND_FIXED_ACTIVE) {
-                play_sound_rbutton_changed();
-                sCameraSoundFlags &= ~CAM_SOUND_FIXED_ACTIVE;
-            }
-        }
-#ifdef ENABLE_VANILLA_LEVEL_SPECIFIC_CHECKS
-    } else {
-        if ((gPlayer1Controller->buttonPressed & R_TRIG) && (cam_select_alt_mode(0) == CAM_SELECTION_FIXED)) {
-            play_sound_button_change_blocked();
-        }
-    }
-#endif
-
+	
     update_lakitu(c);
-#ifdef PUPPYCAM
-    }
-    // Just a cute little bit that syncs puppycamera up to vanilla when playing a vanilla cutscene :3
-    if (c->cutscene != CUTSCENE_NONE) {
-        gPuppyCam.yawTarget = gCamera->yaw;
-        gPuppyCam.yaw = gCamera->yaw;
-        if (gMarioState->action == ACT_ENTERING_STAR_DOOR) { // god this is stupid and the fact I have to continue doing this is testament to the idiocy of the star door cutscene >:(
-            gPuppyCam.yawTarget = gMarioState->faceAngle[1] + 0x8000;
-            gPuppyCam.yaw = gMarioState->faceAngle[1] + 0x8000;
-        }
-    }
-    if (c->cutscene == CUTSCENE_NONE
-        && gPuppyCam.enabled
-        && gCurrentArea->camera->mode != CAMERA_MODE_INSIDE_CANNON) {
-        // Clear the recent cutscene after 8 frames
-        if (gRecentCutscene != CUTSCENE_NONE && sFramesSinceCutsceneEnded < 8) {
-            sFramesSinceCutsceneEnded++;
-            if (sFramesSinceCutsceneEnded >= 8) {
-                gRecentCutscene = CUTSCENE_NONE;
-                sFramesSinceCutsceneEnded = 0;
-            }
-        }
-        puppycam_loop();
-        // Apply camera shakes
-        shake_camera_pitch(gLakituState.pos, gLakituState.focus);
-        shake_camera_yaw(gLakituState.pos, gLakituState.focus);
-        shake_camera_roll(&gLakituState.roll);
-        shake_camera_handheld(gLakituState.pos, gLakituState.focus);
-
-        if ((sMarioCamState->action == ACT_DIVE)
-         && (gLakituState.lastFrameAction != ACT_DIVE)) {
-            set_camera_shake_from_hit(SHAKE_HIT_FROM_BELOW);
-        }
-        gLakituState.roll += sHandheldShakeRoll;
-        gLakituState.roll += gLakituState.keyDanceRoll;
-    }
-#endif
-    gLakituState.lastFrameAction = sMarioCamState->action;
+	
 #if PUPPYPRINT_DEBUG
     profiler_update(cameraTime, first);
     cameraTime[perfIteration] -= collisionTime[perfIteration]-colTime;
