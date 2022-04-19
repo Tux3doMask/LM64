@@ -20,6 +20,19 @@ enum ObjActiveFlags {
     ACTIVE_FLAG_IGNORE_ENV_BOXES               = (1 << 10), // 0x0400
 };
 
+
+// Poltergust junk
+enum poltergustFlags {
+	POLTERGUST_NOTHING                         = (0 << 0), // 0x0000
+	
+	POLTERGUST_IN_STREAM                       = (1 << 0), // 0x0001
+	POLTERGUST_GHOST_FLASHED                   = (1 << 1), // 0x0002
+	POLTERGUST_GHOST_LATCHED                   = (1 << 2), // 0x0004
+	
+	// mario poltergust things
+	POLTERGUST_OBJECT_LATCHED                  = (1 << 0), // 0x0001
+};
+
 /* respawnInfoType */
 enum RespawnInfoType {
     RESPAWN_INFO_TYPE_NULL,
@@ -44,7 +57,7 @@ enum ObjFlags {
     OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT      = (1 <<  9), // 0x00000200
     OBJ_FLAG_HOLDABLE                          = (1 << 10), // 0x00000400
     OBJ_FLAG_SET_THROW_MATRIX_FROM_TRANSFORM   = (1 << 11), // 0x00000800
-    OBJ_FLAG_1000                              = (1 << 12), // 0x00001000
+    OBJ_FLAG_VACUUM_LATCHABLE                  = (1 << 12), // 0x00001000
     OBJ_FLAG_COMPUTE_ANGLE_TO_MARIO            = (1 << 13), // 0x00002000
     OBJ_FLAG_PERSISTENT_RESPAWN                = (1 << 14), // 0x00004000
     OBJ_FLAG_VELOCITY_PLATFORM                 = (1 << 15), // 0x00008000
@@ -56,6 +69,7 @@ enum ObjFlags {
     OBJ_FLAG_OPACITY_FROM_CAMERA_DIST          = (1 << 21), // 0x00200000
     OBJ_FLAG_EMIT_LIGHT                        = (1 << 22), // 0x00400000
     OBJ_FLAG_HITBOX_WAS_SET                    = (1 << 30), // 0x40000000
+    
 };
 
 /* oHeldState */

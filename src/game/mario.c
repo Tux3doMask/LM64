@@ -33,6 +33,8 @@
 #include "sound_init.h"
 #include "rumble_init.h"
 
+// default is 0.5f
+#define MAG_AMOUNT 0.3f
 
 /**************************************************
  *                    ANIMATIONS                  *
@@ -1062,9 +1064,6 @@ s32 hurt_and_set_mario_action(struct MarioState *m, u32 action, u32 actionArg, s
  * actions. A common variant of the below function.
  */
 s32 check_common_action_exits(struct MarioState *m) {
-    if (m->input & INPUT_A_PRESSED) {
-        return set_mario_action(m, ACT_JUMP, 0);
-    }
     if (m->input & INPUT_OFF_FLOOR) {
         return set_mario_action(m, ACT_FREEFALL, 0);
     }
@@ -1241,11 +1240,7 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
 
-    if (m->squishTimer == 0) {
-        m->intendedMag = mag / 2.0f;
-    } else {
-        m->intendedMag = mag / 8.0f;
-    }
+    m->intendedMag = mag * MAG_AMOUNT;
 
     if (m->intendedMag > 0.0f) {
         m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;

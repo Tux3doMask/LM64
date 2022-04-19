@@ -288,7 +288,7 @@ struct PuppyLight {
 #ifdef PUPPYLIGHTS
 #define MAX_OBJECT_FIELDS 0x51
 #else
-#define MAX_OBJECT_FIELDS 0x50
+#define MAX_OBJECT_FIELDS 0x53
 #endif
 
 struct Object {

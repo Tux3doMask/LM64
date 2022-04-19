@@ -30,6 +30,20 @@
 
 #define BHV_CMD_GET_ADDR_OF_CMD(index) (uintptr_t)(&gCurBhvCommand[index])
 
+/* poltergust related defines */
+
+//needs to be high, 1000.0f seems good for now
+#define MAX_SUCK_DISTANCE 800.0f
+
+// value for max angle of suck, second number is width in degrees
+#define SUCK_WIDTH        60
+
+// set this to tan of half SUCK_WIDTH
+#define MAX_SUCK_HEIGHT   0.57735
+
+#define MAX_SUCK_ANGLE    0x5B * (SUCK_WIDTH / 2)
+
+
 // Unused function that directly jumps to a behavior command and resets the object's stack index.
 UNUSED static void goto_behavior_unused(const BehaviorScript *bhvAddr) {
     gCurBhvCommand = segmented_to_virtual(bhvAddr);
@@ -815,132 +829,175 @@ static BhvCommandProc BehaviorCmdTable[] = {
 
 // Execute the behavior script of the current object, process the object flags, and other miscellaneous code for updating objects.
 void cur_obj_update(void) {
-    u32 objFlags = o->oFlags;
-    f32 distanceFromMario;
-    BhvCommandProc bhvCmdProc;
-    s32 bhvProcResult;
+	u32 objFlags = o->oFlags;
+	f32 distanceFromMario;
+	BhvCommandProc bhvCmdProc;
+	s32 bhvProcResult;
+	
+	// Calculate the distance from the object to Mario.
+	if (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO) {
+		distanceFromMario = lateral_dist_between_objects(o, gMarioObject);
+		o->oDistanceToMario = distanceFromMario;
+	} else {
+		distanceFromMario = 0.0f;
+	}
 
-    // Calculate the distance from the object to Mario.
-    if (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO) {
-        o->oDistanceToMario = dist_between_objects(o, gMarioObject);
-        distanceFromMario = o->oDistanceToMario;
-    } else {
-        distanceFromMario = 0.0f;
-    }
+	// Calculate the angle from the object to Mario.
+	if (objFlags & OBJ_FLAG_COMPUTE_ANGLE_TO_MARIO) {
+		o->oAngleToMario = obj_angle_to_object(o, gMarioObject);
+	}
+	
+	if (objFlags & OBJ_FLAG_VACUUM_LATCHABLE/* &&
+		!(o->oPoltergustStatus & POLTERGUST_GHOST_LATCHED)*/) {
+		// code for checking if in vaccum goes here
+		if (distanceFromMario <= MAX_SUCK_DISTANCE) {
+			f32 dx = o->oPosX - gMarioObject->oPosX;
+			f32 dy = o->oPosY - gMarioObject->oPosY;
+			f32 dz = o->oPosZ - gMarioObject->oPosZ;
+			
+			//if (gPlayer1Controller->buttonDown & C_BUTTON
+			
+			s16 dYawToObject = atan2s(dz, dx) - gMarioObject->header.gfx.angle[1];
+			
+			// 120 degrees total, or 60 each way
+			if (
+				-MAX_SUCK_ANGLE <= dYawToObject && 
+				dYawToObject <= MAX_SUCK_ANGLE &&
+				dy <= MAX_SUCK_HEIGHT * distanceFromMario &&
+				dy >= -MAX_SUCK_HEIGHT * distanceFromMario) {
+				if (gPlayer1Controller->buttonDown & R_TRIG) {
+					o->oPoltergustStatus |= POLTERGUST_IN_STREAM;
+					if (o->oPoltergustStatus & POLTERGUST_GHOST_FLASHED) {
+						o->oPoltergustStatus |= POLTERGUST_GHOST_LATCHED;
+					}
+				} else {
+					o->oPoltergustStatus = POLTERGUST_NOTHING;
+					if (!(gPlayer1Controller->buttonDown & B_BUTTON)) {
+						o->oPoltergustStatus = POLTERGUST_GHOST_FLASHED;
+					}
+				}
+			}
+		}
+	}
+	
+	if (o->oPoltergustStatus & POLTERGUST_GHOST_LATCHED) {
+		gMarioObject->oPoltergustLatchedX = o->oPosX;
+		gMarioObject->oPoltergustLatchedY = o->oPosY;
+		gMarioObject->oPoltergustLatchedZ = o->oPosZ;
+		o->oVelY = 10.0f;
+		if (!(gPlayer1Controller->buttonDown & R_TRIG)) {
+			o->oPoltergustStatus = POLTERGUST_NOTHING;
+		}
+	}
 
-    // Calculate the angle from the object to Mario.
-    if (objFlags & OBJ_FLAG_COMPUTE_ANGLE_TO_MARIO) {
-        o->oAngleToMario = obj_angle_to_object(o, gMarioObject);
-    }
+	// If the object's action has changed, reset the action timer.
+	if (o->oAction != o->oPrevAction) {
+		o->oTimer = 0;
+		o->oSubAction = 0;
+		o->oPrevAction = o->oAction;
+	}
 
-    // If the object's action has changed, reset the action timer.
-    if (o->oAction != o->oPrevAction) {
-        o->oTimer = 0;
-        o->oSubAction = 0;
-        o->oPrevAction = o->oAction;
-    }
+	// Execute the behavior script.
+	gCurBhvCommand = o->curBhvCommand;
 
-    // Execute the behavior script.
-    gCurBhvCommand = o->curBhvCommand;
+	do {
+		bhvCmdProc = BehaviorCmdTable[*gCurBhvCommand >> 24];
+		bhvProcResult = bhvCmdProc();
+	} while (bhvProcResult == BHV_PROC_CONTINUE);
 
-    do {
-        bhvCmdProc = BehaviorCmdTable[*gCurBhvCommand >> 24];
-        bhvProcResult = bhvCmdProc();
-    } while (bhvProcResult == BHV_PROC_CONTINUE);
+	o->curBhvCommand = gCurBhvCommand;
 
-    o->curBhvCommand = gCurBhvCommand;
+	// Increment the object's timer.
+	if (o->oTimer < 0x3FFFFFFF) {
+		o->oTimer++;
+	}
 
-    // Increment the object's timer.
-    if (o->oTimer < 0x3FFFFFFF) {
-        o->oTimer++;
-    }
+	// If the object's action has changed, reset the action timer.
+	if (o->oAction != o->oPrevAction) {
+		o->oTimer = 0;
+		o->oSubAction = 0;
+		o->oPrevAction = o->oAction;
+	}
 
-    // If the object's action has changed, reset the action timer.
-    if (o->oAction != o->oPrevAction) {
-        o->oTimer = 0;
-        o->oSubAction = 0;
-        o->oPrevAction = o->oAction;
-    }
+	// Execute various code based on object flags.
+	objFlags = o->oFlags;
 
-    // Execute various code based on object flags.
-    objFlags = o->oFlags;
+	if (objFlags & OBJ_FLAG_SET_FACE_ANGLE_TO_MOVE_ANGLE) {
+		vec3i_copy(&o->oFaceAngleVec, &o->oMoveAngleVec);
+	}
 
-    if (objFlags & OBJ_FLAG_SET_FACE_ANGLE_TO_MOVE_ANGLE) {
-        vec3i_copy(&o->oFaceAngleVec, &o->oMoveAngleVec);
-    }
+	if (objFlags & OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW) {
+		o->oFaceAngleYaw = o->oMoveAngleYaw;
+	}
 
-    if (objFlags & OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW) {
-        o->oFaceAngleYaw = o->oMoveAngleYaw;
-    }
+	if (objFlags & OBJ_FLAG_MOVE_XZ_USING_FVEL) {
+		cur_obj_move_xz_using_fvel_and_yaw();
+	}
 
-    if (objFlags & OBJ_FLAG_MOVE_XZ_USING_FVEL) {
-        cur_obj_move_xz_using_fvel_and_yaw();
-    }
+	if (objFlags & OBJ_FLAG_MOVE_Y_WITH_TERMINAL_VEL) {
+		cur_obj_move_y_with_terminal_vel();
+	}
 
-    if (objFlags & OBJ_FLAG_MOVE_Y_WITH_TERMINAL_VEL) {
-        cur_obj_move_y_with_terminal_vel();
-    }
+	if (objFlags & OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT) {
+		obj_build_transform_relative_to_parent(o);
+	}
 
-    if (objFlags & OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT) {
-        obj_build_transform_relative_to_parent(o);
-    }
+	if (objFlags & OBJ_FLAG_SET_THROW_MATRIX_FROM_TRANSFORM) {
+		obj_set_throw_matrix_from_transform(o);
+	}
 
-    if (objFlags & OBJ_FLAG_SET_THROW_MATRIX_FROM_TRANSFORM) {
-        obj_set_throw_matrix_from_transform(o);
-    }
-
-    if (objFlags & OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE) {
-        obj_update_gfx_pos_and_angle(o);
-    }
+	if (objFlags & OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE) {
+		obj_update_gfx_pos_and_angle(o);
+	}
 
 #if SILHOUETTE
-    COND_BIT((  objFlags & OBJ_FLAG_SILHOUETTE         ), o->header.gfx.node.flags, GRAPH_RENDER_SILHOUETTE        );
-    COND_BIT((  objFlags & OBJ_FLAG_OCCLUDE_SILHOUETTE ), o->header.gfx.node.flags, GRAPH_RENDER_OCCLUDE_SILHOUETTE);
+	COND_BIT((  objFlags & OBJ_FLAG_SILHOUETTE         ), o->header.gfx.node.flags, GRAPH_RENDER_SILHOUETTE        );
+	COND_BIT((  objFlags & OBJ_FLAG_OCCLUDE_SILHOUETTE ), o->header.gfx.node.flags, GRAPH_RENDER_OCCLUDE_SILHOUETTE);
 #endif
 #ifdef OBJECTS_REJ
-    s32 objListIndex = OBJ_LIST_PLAYER;
+	s32 objListIndex = OBJ_LIST_PLAYER;
 
-    BehaviorScript *bhvScript = segmented_to_virtual(o->behavior);
-    if ((bhvScript[0] >> 24) == 0) {
-        objListIndex = ((bhvScript[0] >> 16) & 0xFFFF);
-    }
+	BehaviorScript *bhvScript = segmented_to_virtual(o->behavior);
+	if ((bhvScript[0] >> 24) == 0) {
+		objListIndex = ((bhvScript[0] >> 16) & 0xFFFF);
+	}
 
-    if (objFlags & OBJ_FLAG_UCODE_SMALL) {
-        o->header.gfx.ucode = GRAPH_NODE_UCODE_REJ;
-    }
-    else {
-        o->header.gfx.ucode = GRAPH_NODE_UCODE_DEFAULT;
-    }
+	if (objFlags & OBJ_FLAG_UCODE_SMALL) {
+		o->header.gfx.ucode = GRAPH_NODE_UCODE_REJ;
+	}
+	else {
+		o->header.gfx.ucode = GRAPH_NODE_UCODE_DEFAULT;
+	}
 
 #endif
 #ifdef OBJ_OPACITY_BY_CAM_DIST
-    if (objFlags & OBJ_FLAG_OPACITY_FROM_CAMERA_DIST) {
-        obj_set_opacity_from_cam_dist(o);
-    }
+	if (objFlags & OBJ_FLAG_OPACITY_FROM_CAMERA_DIST) {
+		obj_set_opacity_from_cam_dist(o);
+	}
 #endif
 
 #ifdef PUPPYLIGHTS
-    puppylights_object_emit(o);
+	puppylights_object_emit(o);
 #endif
 
-    // Handle visibility of object
-    if (o->oRoom != -1) {
-        // If the object is in a room, only show it when Mario is in the room.
-        cur_obj_enable_rendering_if_mario_in_room();
-    } else if (
-        o->collisionData == NULL
-        &&  (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO)
-        && !(objFlags & OBJ_FLAG_ACTIVE_FROM_AFAR)
-    ) {
-        // If the object has a render distance, check if it should be shown.
-        if (distanceFromMario > o->oDrawingDistance) {
-            // Out of render distance, hide the object.
-            o->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
-            o->activeFlags |= ACTIVE_FLAG_FAR_AWAY;
-        } else if (o->oHeldState == HELD_FREE) {
-            // In render distance (and not being held), show the object.
-            o->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
-            o->activeFlags &= ~ACTIVE_FLAG_FAR_AWAY;
-        }
-    }
+	// Handle visibility of object
+	if (o->oRoom != -1) {
+		// If the object is in a room, only show it when Mario is in the room.
+		cur_obj_enable_rendering_if_mario_in_room();
+	} else if (
+		o->collisionData == NULL
+		&&  (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO)
+		&& !(objFlags & OBJ_FLAG_ACTIVE_FROM_AFAR)
+	) {
+		// If the object has a render distance, check if it should be shown.
+		if (distanceFromMario > o->oDrawingDistance) {
+			// Out of render distance, hide the object.
+			o->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
+			o->activeFlags |= ACTIVE_FLAG_FAR_AWAY;
+		} else if (o->oHeldState == HELD_FREE) {
+			// In render distance (and not being held), show the object.
+			o->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
+			o->activeFlags &= ~ACTIVE_FLAG_FAR_AWAY;
+		}
+	}
 }

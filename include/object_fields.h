@@ -160,18 +160,19 @@
 #define /*0x198*/ oNumLootCoins                                 OBJECT_FIELD_S32(0x44)
 #define /*0x19C*/ oDrawingDistance                              OBJECT_FIELD_F32(0x45)
 #define /*0x1A0*/ oRoom                                         OBJECT_FIELD_S32(0x46)
-// 0x1A4 is unused, possibly related to 0x1A8 in removed macro purposes.
+#define /*0x1A4*/ oPoltergustStatus								OBJECT_FIELD_U32(0x47)
 #define /*0x1A8*/ oUnusedCoinParams                             OBJECT_FIELD_U32(0x48)
 // 0x1AC-0x1B2 (0x48-0x4A) are object specific and defined below the common fields.
-#define /*0x1B4*/ oWallAngle                  OBJECT_FIELD_S32(0x4B)
-#define /*0x1B8*/ oFloorType                  OBJECT_FIELD_S16(0x4C, 0)
-#define /*0x1BA*/ oFloorRoom                  OBJECT_FIELD_S16(0x4C, 1)
-#define /*0x1BC*/ oAngleToHome                OBJECT_FIELD_S32(0x4D)
-#define /*0x1C0*/ oFloor                      OBJECT_FIELD_SURFACE(0x4E)
-#define /*0x1C4*/ oDeathSound                 OBJECT_FIELD_S32(0x4F)
-#ifdef PUPPYLIGHTS
-#define /*0x1C4*/ oLightID                                      OBJECT_FIELD_S32(0x50)
-#endif
+#define /*0x1B4*/ oWallAngle        					        OBJECT_FIELD_S32(0x4B)
+#define /*0x1B8*/ oFloorType          					        OBJECT_FIELD_S16(0x4C, 0)
+#define /*0x1BA*/ oFloorRoom        				            OBJECT_FIELD_S16(0x4C, 1)
+#define /*0x1BC*/ oAngleToHome          				        OBJECT_FIELD_S32(0x4D)
+#define /*0x1C0*/ oFloor                 					    OBJECT_FIELD_SURFACE(0x4E)
+#define /*0x1C4*/ oDeathSound             					    OBJECT_FIELD_S32(0x4F)
+//#define /*0x1C4*/ oLightID                                      OBJECT_FIELD_S32(0x50)
+#define /*0x1C4*/ oPoltergustLatchedX                           OBJECT_FIELD_F32(0x50)
+#define /*0x1C8*/ oPoltergustLatchedY                           OBJECT_FIELD_F32(0x51)
+#define /*0x1CC*/ oPoltergustLatchedZ                           OBJECT_FIELD_F32(0x52)
 
 /* Pathed (see obj_follow_path) */
 #define /*0x0FC*/ oPathedStartWaypoint     OBJECT_FIELD_WAYPOINT(0x1D)

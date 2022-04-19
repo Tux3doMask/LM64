@@ -2777,10 +2777,8 @@ void set_camera_mode(struct Camera *c, s16 mode, s16 frames) {
  * Updates Lakitu's position/focus and applies camera shakes.
  */
 void update_lakitu(struct Camera *c) {
-    struct Surface *floor = NULL;
     Vec3f newPos;
     Vec3f newFoc;
-    f32 distToFloor;
     s16 newYaw;
 
     if (!(gCameraMovementFlags & CAM_MOVE_PAUSE_SCREEN)) {
@@ -2844,20 +2842,6 @@ void update_lakitu(struct Camera *c) {
         gLakituState.roll += sHandheldShakeRoll;
         gLakituState.roll += gLakituState.keyDanceRoll;
 
-        if (c->mode != CAMERA_MODE_C_UP && c->cutscene == CUTSCENE_NONE) {
-            gCollisionFlags |= COLLISION_FLAG_CAMERA;
-            distToFloor = find_floor(gLakituState.pos[0],
-                                     gLakituState.pos[1] + 20.0f,
-                                     gLakituState.pos[2], &floor);
-            if (distToFloor != FLOOR_LOWER_LIMIT) {
-                if (gLakituState.pos[1] < (distToFloor += 100.0f)) {
-                    gLakituState.pos[1] = distToFloor;
-                } else {
-                    gCollisionFlags &= ~COLLISION_FLAG_CAMERA;
-                }
-            }
-        }
-
         vec3f_copy(sModeTransition.marioPos, sMarioCamState->pos);
     }
     clamp_pitch(gLakituState.pos, gLakituState.focus, 0x3E00, -0x3E00);
@@ -2885,8 +2869,6 @@ void update_camera(struct Camera *c) {
         gCameraMovementFlags &= ~CAM_MOVE_INIT_CAMERA;
         sStatusFlags |= CAM_FLAG_FRAME_AFTER_CAM_INIT;
     }
-	
-    sCButtonsPressed = find_c_buttons_pressed(sCButtonsPressed, gPlayer1Controller->buttonPressed, gPlayer1Controller->buttonDown);
 
     if (c->cutscene != CUTSCENE_NONE) {
         sYawSpeed = 0;
@@ -2905,23 +2887,22 @@ void update_camera(struct Camera *c) {
 	
     // If not in a cutscene, do custom camera
     if (c->cutscene == CUTSCENE_NONE) {
-        sYawSpeed = 0x400;
 		Vec3f pos;
         s16 camYaw = DEGREES(0);
-		s16 pitch = look_down_slopes(camYaw);
+		s16 pitch = 0x05B0;
 		f32 posY;
-		f32 focusY;
+		f32 focusY = 0.0f;
 		f32 yOff = 125.f;
 		f32 baseDist = 1000.f;
-
-		calc_y_to_curr_floor(&posY, 1.f, 200.f, &focusY, 0.9f, 200.f);
+		
+		posY = gMarioState->pos[1] + 500.0f;
 		focus_on_mario(c->focus, pos, posY + yOff, focusY + yOff, sLakituDist + baseDist, pitch, camYaw);
 
 		lakitu_zoom(400.f, 0x900);
 		c->yaw = DEGREES(0);
 		c->pos[0] = pos[0];
 		c->pos[2] = pos[2];
-		set_camera_height(c, pos[1]);
+		c->pos[1] = posY;
         
     }
     // Start any Mario-related cutscenes
