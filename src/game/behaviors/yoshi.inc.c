@@ -145,19 +145,8 @@ void yoshi_finish_jumping_and_despawn_loop(void) {
 void yoshi_give_present_loop(void) {
     s32 globalTimer = gGlobalTimer;
 
-    if (gHudDisplay.lives == 100) {
-#ifdef SAVE_NUM_LIVES
-        save_file_set_num_lives(gMarioState->numLives);
-#endif
-        play_sound(SOUND_GENERAL_COLLECT_1UP, gGlobalSoundSource);
-        gSpecialTripleJump = TRUE;
-        o->oAction = YOSHI_ACT_WALK_JUMP_OFF_ROOF;
-        return;
-    }
-
     if (!(globalTimer & 3)) {
         play_sound(SOUND_MENU_YOSHI_GAIN_LIVES, gGlobalSoundSource);
-        gMarioState->numLives++;
     }
 }
 
@@ -166,7 +155,6 @@ void bhv_yoshi_loop(void) {
         case YOSHI_ACT_IDLE:
             yoshi_idle_loop();
             break;
-
         case YOSHI_ACT_WALK:
             yoshi_walk_loop();
             break;

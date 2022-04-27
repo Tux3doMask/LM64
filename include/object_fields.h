@@ -130,7 +130,7 @@
 #define /*0x140*/ oParentRelativePosZ                           OBJECT_FIELD_F32(O_PARENT_RELATIVE_POS_Z_INDEX)
 /* Common fields */
 #define /*0x144*/ oBehParams2ndByte                             OBJECT_FIELD_S32(0x2F)
-// 0x148 unused, possibly a third param byte.
+#define /*0x148*/ oStunnedTimer                                 OBJECT_FIELD_U32(0x30)
 #define /*0x14C*/ oAction                                       OBJECT_FIELD_S32(0x31)
 #define /*0x150*/ oSubAction                                    OBJECT_FIELD_S32(0x32)
 #define /*0x154*/ oTimer                                        OBJECT_FIELD_S32(0x33)
@@ -169,10 +169,9 @@
 #define /*0x1BC*/ oAngleToHome          				        OBJECT_FIELD_S32(0x4D)
 #define /*0x1C0*/ oFloor                 					    OBJECT_FIELD_SURFACE(0x4E)
 #define /*0x1C4*/ oDeathSound             					    OBJECT_FIELD_S32(0x4F)
-//#define /*0x1C4*/ oLightID                                      OBJECT_FIELD_S32(0x50)
-#define /*0x1C4*/ oPoltergustLatchedX                           OBJECT_FIELD_F32(0x50)
-#define /*0x1C8*/ oPoltergustLatchedY                           OBJECT_FIELD_F32(0x51)
-#define /*0x1CC*/ oPoltergustLatchedZ                           OBJECT_FIELD_F32(0x52)
+#ifdef PUPPYLIGHTS
+#define /*0x1C4*/ oLightID                                      OBJECT_FIELD_S32(0x50)
+#endif
 
 /* Pathed (see obj_follow_path) */
 #define /*0x0FC*/ oPathedStartWaypoint     OBJECT_FIELD_WAYPOINT(0x1D)
@@ -187,21 +186,21 @@
 #define /*0x110*/ oMacroUnk110 OBJECT_FIELD_F32(0x22)
 
 /* Mario */
-#define /*0x0F4*/ oMarioParticleFlags    OBJECT_FIELD_S32(0x1B)
-#define /*0x108*/ oMarioReadingSignDYaw  OBJECT_FIELD_S32(0x20)
-#define /*0x10C*/ oMarioCannonObjectYaw  OBJECT_FIELD_S32(0x21)
-#define /*0x10C*/ oMarioTornadoYawVel    OBJECT_FIELD_S32(0x21)
-#define /*0x10C*/ oMarioReadingSignDPosX OBJECT_FIELD_F32(0x21)
-#define /*0x110*/ oMarioPolePos          OBJECT_FIELD_F32(0x22)
-#define /*0x110*/ oMarioCannonInputYaw   OBJECT_FIELD_S32(0x22)
-#define /*0x110*/ oMarioTornadoPosY      OBJECT_FIELD_F32(0x22)
-#define /*0x110*/ oMarioReadingSignDPosZ OBJECT_FIELD_F32(0x22)
-#define /*0x110*/ oMarioWhirlpoolPosY    OBJECT_FIELD_F32(0x22)
+#define /*0x0F4*/ oMarioParticleFlags  	      OBJECT_FIELD_S32(0x1B)
+#define /*0x108*/ oMarioReadingSignDYaw 	  OBJECT_FIELD_S32(0x20)
+#define /*0x10C*/ oMarioCannonObjectYaw 	  OBJECT_FIELD_S32(0x21)
+#define /*0x10C*/ oMarioTornadoYawVel   	  OBJECT_FIELD_S32(0x21)
+#define /*0x10C*/ oMarioReadingSignDPosX 	  OBJECT_FIELD_F32(0x21)
+#define /*0x110*/ oMarioPolePos          	  OBJECT_FIELD_F32(0x22)
+#define /*0x110*/ oMarioCannonInputYaw   	  OBJECT_FIELD_S32(0x22)
+#define /*0x110*/ oMarioTornadoPosY      	  OBJECT_FIELD_F32(0x22)
+#define /*0x110*/ oMarioReadingSignDPosZ 	  OBJECT_FIELD_F32(0x22)
+#define /*0x110*/ oMarioWhirlpoolPosY    	  OBJECT_FIELD_F32(0x22)
 #define /*0x110*/ oMarioJumboStarCutscenePosZ OBJECT_FIELD_F32(0x22)
-#define /*0x110*/ oMarioBurnTimer        OBJECT_FIELD_S32(0x22)
-#define /*0x110*/ oMarioLongJumpIsSlow   OBJECT_FIELD_S32(0x22)
-#define /*0x110*/ oMarioSteepJumpYaw     OBJECT_FIELD_S32(0x22)
-#define /*0x110*/ oMarioWalkingPitch     OBJECT_FIELD_S32(0x22)
+#define /*0x110*/ oMarioBurnTimer        	  OBJECT_FIELD_S32(0x22)
+#define /*0x110*/ oMarioLongJumpIsSlow   	  OBJECT_FIELD_S32(0x22)
+#define /*0x110*/ oMarioSteepJumpYaw     	  OBJECT_FIELD_S32(0x22)
+#define /*0x110*/ oMarioWalkingPitch     	  OBJECT_FIELD_S32(0x22)
 
 /* 1-Up Hidden */
 #define /*0x0F4*/ o1UpHiddenTimesTriggered                      OBJECT_FIELD_S32(0x1B)

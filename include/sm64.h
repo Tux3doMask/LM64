@@ -367,7 +367,7 @@ enum MarioActionFlags {
 #define ACT_TRIPLE_JUMP_LAND           0x04000478 // (0x078 | ACT_FLAG_MOVING | ACT_FLAG_ALLOW_FIRST_PERSON)
 #define ACT_LONG_JUMP_LAND             0x00000479 // (0x079 | ACT_FLAG_MOVING)
 #define ACT_BACKFLIP_LAND              0x0400047A // (0x07A | ACT_FLAG_MOVING | ACT_FLAG_ALLOW_FIRST_PERSON)
-#define ACT_UNUSED_07B                 0x0000007B // (0x07B)
+#define ACT_WALKING_POLTERGUST         0x0000007B // (0x07B)
 #define ACT_UNUSED_07C                 0x0000007C // (0x07C)
 #define ACT_UNUSED_07D                 0x0000007D // (0x07D)
 #define ACT_UNUSED_07E                 0x0000007E // (0x07E)

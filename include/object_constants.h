@@ -20,7 +20,6 @@ enum ObjActiveFlags {
     ACTIVE_FLAG_IGNORE_ENV_BOXES               = (1 << 10), // 0x0400
 };
 
-
 // Poltergust junk
 enum poltergustFlags {
 	POLTERGUST_NOTHING                         = (0 << 0), // 0x0000
@@ -28,9 +27,6 @@ enum poltergustFlags {
 	POLTERGUST_IN_STREAM                       = (1 << 0), // 0x0001
 	POLTERGUST_GHOST_FLASHED                   = (1 << 1), // 0x0002
 	POLTERGUST_GHOST_LATCHED                   = (1 << 2), // 0x0004
-	
-	// mario poltergust things
-	POLTERGUST_OBJECT_LATCHED                  = (1 << 0), // 0x0001
 };
 
 /* respawnInfoType */

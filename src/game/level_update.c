@@ -138,7 +138,6 @@ u16 level_control_timer(s32 timerOp) {
         case TIMER_CONTROL_SHOW:
             gHudDisplay.flags |= HUD_DISPLAY_FLAG_TIMER;
             sTimerRunning = FALSE;
-            gHudDisplay.timer = 0;
             break;
 
         case TIMER_CONTROL_START:
@@ -152,11 +151,10 @@ u16 level_control_timer(s32 timerOp) {
         case TIMER_CONTROL_HIDE:
             gHudDisplay.flags &= ~HUD_DISPLAY_FLAG_TIMER;
             sTimerRunning = FALSE;
-            gHudDisplay.timer = 0;
             break;
     }
 
-    return gHudDisplay.timer;
+    return 0;
 }
 
 u32 pressed_pause(void) {
@@ -315,7 +313,7 @@ void set_mario_initial_action(struct MarioState *m, u32 spawnType, u32 actionArg
 
 #ifdef PREVENT_DEATH_LOOP
     if (m->isDead) {
-        m->health = 0x880;
+        m->health = 100;
         m->isDead = FALSE;
     }
 #endif
@@ -876,7 +874,6 @@ void initiate_delayed_warp(void) {
 
 void update_hud_values(void) {
     if (gCurrCreditsEntry == NULL) {
-        s16 numHealthWedges = gMarioState->health > 0 ? gMarioState->health >> 8 : 0;
 
 #ifdef BREATH_METER
         s16 numBreathWedges = gMarioState->breath > 0 ? gMarioState->breath >> 8 : 0;
@@ -922,15 +919,6 @@ void update_hud_values(void) {
         }
 #endif
 
-        gHudDisplay.stars = gMarioState->numStars;
-        gHudDisplay.lives = gMarioState->numLives;
-        gHudDisplay.keys = gMarioState->numKeys;
-
-        if (numHealthWedges > gHudDisplay.wedges) {
-            play_sound(SOUND_MENU_POWER_METER, gGlobalSoundSource);
-        }
-        gHudDisplay.wedges = numHealthWedges;
-
         COND_BIT((gMarioState->hurtCounter > 0), gHudDisplay.flags, HUD_DISPLAY_FLAG_EMPHASIZE_POWER);
 #ifdef BREATH_METER
         gHudDisplay.breath = numBreathWedges;
@@ -972,10 +960,6 @@ s32 play_mode_normal(void) {
 
     warp_area();
     check_instant_warp();
-
-    if (sTimerRunning && gHudDisplay.timer < 17999) {
-        gHudDisplay.timer++;
-    }
 
     area_update_objects();
     update_hud_values();

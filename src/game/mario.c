@@ -33,8 +33,6 @@
 #include "sound_init.h"
 #include "rumble_init.h"
 
-// default is 0.5f
-#define MAG_AMOUNT 0.3f
 
 /**************************************************
  *                    ANIMATIONS                  *
@@ -1064,6 +1062,9 @@ s32 hurt_and_set_mario_action(struct MarioState *m, u32 action, u32 actionArg, s
  * actions. A common variant of the below function.
  */
 s32 check_common_action_exits(struct MarioState *m) {
+    if (m->input & INPUT_A_PRESSED) {
+        return set_mario_action(m, ACT_JUMP, 0);
+    }
     if (m->input & INPUT_OFF_FLOOR) {
         return set_mario_action(m, ACT_FREEFALL, 0);
     }
@@ -1240,7 +1241,11 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
 
-    m->intendedMag = mag * MAG_AMOUNT;
+    if (m->squishTimer == 0) {
+        m->intendedMag = mag / 2.0f;
+    } else {
+        m->intendedMag = mag / 8.0f;
+    }
 
     if (m->intendedMag > 0.0f) {
         m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
@@ -1410,7 +1415,7 @@ void set_submerged_cam_preset_and_spawn_bubbles(struct MarioState *m) {
 void update_mario_health(struct MarioState *m) {
     s32 terrainIsSnow;
 
-    if (m->health >= 0x100) {
+    if (m->health >= 1) {
         // When already healing or hurting Mario, Mario's HP is not changed any more here.
         if (((u32) m->healCounter | (u32) m->hurtCounter) == 0) {
             if ((m->input & INPUT_IN_POISON_GAS) && !(m->action & ACT_FLAG_INTANGIBLE)) {
@@ -1430,7 +1435,7 @@ void update_mario_health(struct MarioState *m) {
                     // when in snow terrains lose 3 health.
                     // If using the debug level select, do not lose any HP to water.
                     if ((m->pos[1] >= (m->waterLevel - 140)) && !terrainIsSnow) {
-                        m->health += 0x1A;
+                        //m->health += 0x1A;
                     } else if (!gDebugLevelSelect) {
                         m->health -= (terrainIsSnow ? 3 : 1);
                     }
@@ -1440,20 +1445,20 @@ void update_mario_health(struct MarioState *m) {
         }
 
         if (m->healCounter > 0) {
-            m->health += 0x40;
+            m->health += 4;
             m->healCounter--;
         }
         if (m->hurtCounter > 0) {
-            m->health -= 0x40;
+            m->health -= 4;
             m->hurtCounter--;
         }
 
-        if (m->health > 0x880) m->health = 0x880;
-        if (m->health < 0x100) m->health = 0xFF;
+        if (m->health > 100) m->health = 100;
+        if (m->health < 1) m->health = 0;
 
 #ifndef BREATH_METER
         // Play a noise to alert the player when Mario is close to drowning.
-        if (((m->action & ACT_GROUP_MASK) == ACT_GROUP_SUBMERGED) && (m->health < 0x300)) {
+        if (((m->action & ACT_GROUP_MASK) == ACT_GROUP_SUBMERGED) && (m->health < 30)) {
             play_sound(SOUND_MOVING_ALMOST_DROWNING, gGlobalSoundSource);
 #if ENABLE_RUMBLE
             if (gRumblePakTimer == 0) {
@@ -1690,8 +1695,10 @@ void queue_rumble_particles(struct MarioState *m) {
  * Main function for executing Mario's behavior. Returns particleFlags.
  */
 s32 execute_mario_action(UNUSED struct Object *obj) {
-    s32 inLoop = TRUE;
-
+	s32 inLoop = TRUE;
+	
+	gHudDisplay.health = gMarioState->health;
+	
     // Updates once per frame:
     vec3f_get_dist_and_lateral_dist_and_angle(gMarioState->prevPos, gMarioState->pos, &gMarioState->moveSpeed, &gMarioState->lateralSpeed, &gMarioState->movePitch, &gMarioState->moveYaw);
     vec3f_copy(gMarioState->prevPos, gMarioState->pos);
@@ -1772,7 +1779,6 @@ s32 execute_mario_action(UNUSED struct Object *obj) {
 #if ENABLE_RUMBLE
         queue_rumble_particles(gMarioState);
 #endif
-
         return gMarioState->particleFlags;
     }
 
@@ -1873,7 +1879,7 @@ void init_mario_from_save_file(void) {
 #else
     gMarioState->numLives = DEFAULT_NUM_LIVES;
 #endif
-    gMarioState->health = 0x880;
+    gMarioState->health = 100;
 #ifdef BREATH_METER
     gMarioState->breath = 0x880;
     gHudDisplay.breath = 8;
@@ -1882,5 +1888,6 @@ void init_mario_from_save_file(void) {
     gMarioState->animYTrans = 0xBD;
 
     gHudDisplay.coins = 0;
-    gHudDisplay.wedges = 8;
+    gHudDisplay.health = 100;
+	gHudDisplay.maxHealth = 100;
 }

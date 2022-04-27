@@ -751,7 +751,7 @@ s32 act_eaten_by_bubba(struct MarioState *m) {
 #ifdef BREATH_METER
     m->breath = 0xFF;
 #endif
-    m->health = 0xFF;
+    m->health = 0;
     if (m->actionTimer++ == 60) {
         level_trigger_warp(m, WARP_OP_DEATH);
     }
@@ -1174,7 +1174,7 @@ s32 act_death_exit(struct MarioState *m) {
         m->healCounter = 31;
     }
     // one unit of health
-    m->health = 0x0100;
+    m->health = 1;
 #ifdef BREATH_METER
     m->breath = 0x880;
 #endif
@@ -1192,7 +1192,7 @@ s32 act_unused_death_exit(struct MarioState *m) {
         m->healCounter = 31;
     }
     // one unit of health
-    m->health = 0x0100;
+    m->health = 1;
 #ifdef BREATH_METER
     m->breath = 0x880;
 #endif
@@ -1213,7 +1213,7 @@ s32 act_falling_death_exit(struct MarioState *m) {
         m->healCounter = 31;
     }
     // one unit of health
-    m->health = 0x0100;
+    m->health = 1;
 #ifdef BREATH_METER
     m->breath = 0x880;
 #endif
@@ -1270,7 +1270,7 @@ s32 act_special_death_exit(struct MarioState *m) {
     // show Mario
     marioObj->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
     // one unit of health
-    m->health = 0x0100;
+    m->health = 1;
 #ifdef BREATH_METER
     m->breath = 0x880;
 #endif
@@ -1487,7 +1487,7 @@ s32 act_shocked(struct MarioState *m) {
     } else {
         if (m->actionTimer >= 6) {
             m->invincTimer = 30;
-            set_mario_action(m, m->health < 0x0100 ? ACT_ELECTROCUTION : ACT_IDLE, 0);
+            set_mario_action(m, m->health < 1 ? ACT_ELECTROCUTION : ACT_IDLE, 0);
         }
         stop_and_set_height_to_floor(m);
     }
@@ -1542,7 +1542,7 @@ s32 act_squished(struct MarioState *m) {
             m->actionTimer++;
             if (m->actionTimer >= 15) {
                 // 1 unit of health
-                if (m->health < 0x100) {
+                if (m->health < 1) {
                     level_trigger_warp(m, WARP_OP_DEATH);
                     // woosh, he's gone!
                     set_mario_action(m, ACT_DISAPPEARED, 0);
@@ -1583,7 +1583,7 @@ s32 act_squished(struct MarioState *m) {
     // squished for more than 10 seconds, so kill Mario
     if (m->actionArg++ > 300) {
         // 0 units of health
-        m->health = 0x00FF;
+        m->health = 0;
         m->hurtCounter = 0;
         level_trigger_warp(m, WARP_OP_DEATH);
         // woosh, he's gone!

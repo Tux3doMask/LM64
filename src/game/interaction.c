@@ -561,13 +561,13 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
         terrainIndex = 1;
     }
 
-    if (remainingHealth < 0x100) {
+    /*if (remainingHealth < 0x100) {
         strengthIndex = 2;
     } else if (m->interactObj->oDamageOrCoinValue >= 4) {
         strengthIndex = 2;
     } else if (m->interactObj->oDamageOrCoinValue >= 2) {
         strengthIndex = 1;
-    }
+    }*/
 
     m->faceAngle[1] = angleToObject;
 
@@ -770,7 +770,7 @@ u32 interact_star_or_key(struct MarioState *m, UNUSED u32 interactType, struct O
 #endif
     u32 grandStar = (obj->oInteractionSubtype & INT_SUBTYPE_GRAND_STAR) != 0;
 
-    if (m->health >= 0x100) {
+    if (m->health >= 1) {
         mario_stop_riding_and_holding(m);
 #if ENABLE_RUMBLE
         queue_rumble_data(5, 80);

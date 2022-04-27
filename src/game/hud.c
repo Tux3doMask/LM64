@@ -204,37 +204,6 @@ void animate_power_meter_emphasized(void) {
 }
 
 /**
- * Power meter animation called after emphasized mode.
- * Moves power meter y pos speed until it's at 200 to be visible.
- */
-static void animate_power_meter_deemphasizing(void) {
-    s16 speed = 5;
-
-    if (sPowerMeterHUD.y > HUD_POWER_METER_Y - 20) speed = 3;
-    if (sPowerMeterHUD.y > HUD_POWER_METER_Y - 10) speed = 2;
-    if (sPowerMeterHUD.y > HUD_POWER_METER_Y -  5) speed = 1;
-
-    sPowerMeterHUD.y += speed;
-
-    if (sPowerMeterHUD.y > HUD_POWER_METER_Y) {
-        sPowerMeterHUD.y = HUD_POWER_METER_Y;
-        sPowerMeterHUD.animation = POWER_METER_VISIBLE;
-    }
-}
-
-/**
- * Power meter animation called when there's 8 health segments.
- * Moves power meter y pos quickly until it's at 301 to be hidden.
- */
-static void animate_power_meter_hiding(void) {
-    sPowerMeterHUD.y += 20;
-    if (sPowerMeterHUD.y > HUD_POWER_METER_HIDDEN_Y) {
-        sPowerMeterHUD.animation = POWER_METER_HIDDEN;
-        sPowerMeterVisibleTimer = 0;
-    }
-}
-
-/**
  * Handles power meter actions depending of the health segments values.
  */
 void handle_power_meter_actions(s16 numHealthWedges) {
@@ -269,25 +238,6 @@ void handle_power_meter_actions(s16 numHealthWedges) {
         sPowerMeterVisibleTimer = 0;
     }
 #endif
-}
-
-/**
- * Renders the power meter that shows when Mario is in underwater
- * or has taken damage and has less than 8 health segments.
- * And calls a power meter animation function depending of the value defined.
- */
-void render_hud_power_meter(void) {
-    s16 shownHealthWedges = gHudDisplay.wedges;
-    if (sPowerMeterHUD.animation != POWER_METER_HIDING) handle_power_meter_actions(shownHealthWedges);
-    if (sPowerMeterHUD.animation == POWER_METER_HIDDEN) return;
-    switch (sPowerMeterHUD.animation) {
-        case POWER_METER_EMPHASIZED:    animate_power_meter_emphasized();    break;
-        case POWER_METER_DEEMPHASIZING: animate_power_meter_deemphasizing(); break;
-        case POWER_METER_HIDING:        animate_power_meter_hiding();        break;
-        default:                                                             break;
-    }
-    render_dl_power_meter(shownHealthWedges);
-    sPowerMeterVisibleTimer++;
 }
 
 #ifdef BREATH_METER
@@ -388,15 +338,29 @@ void render_hud_breath_meter(void) {
 }
 #endif
 
-#define HUD_TOP_Y 209
+#define HUD_TOP_Y 5
 
 /**
- * Renders the amount of lives Mario has.
+ * Renders the amount of health Luigi has.
  */
-void render_hud_mario_lives(void) {
-    print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), HUD_TOP_Y, ","); // 'Mario Head' glyph
-    print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(38), HUD_TOP_Y, "*"); // 'X' glyph
-    print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(54), HUD_TOP_Y, "%d", gHudDisplay.lives);
+void render_hud_luigi_health(void) {
+	
+    print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(12), HUD_TOP_Y, ","); // 'Heart' glyph
+	
+	// align health for different amounts of digits
+	if (gHudDisplay.health == 100) {
+		print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(28), HUD_TOP_Y, "%d", 100);
+	} else if (gHudDisplay.health >=10) {
+		print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(40), HUD_TOP_Y, "%d", gHudDisplay.health);
+	} else {
+		print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(52), HUD_TOP_Y, "%d", gHudDisplay.health);
+	}
+	// '/' then max health
+	print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(62), HUD_TOP_Y, "/%d", gHudDisplay.maxHealth);
+}
+
+void render_element_meter(void) {
+	
 }
 
 #ifdef VANILLA_STYLE_CUSTOM_DEBUG
@@ -426,55 +390,36 @@ void render_hud_coins(void) {
  * Renders the amount of stars collected.
  * Disables "X" glyph when Mario has 100 stars or more.
  */
-void render_hud_stars(void) {
+/*void render_hud_stars(void) {
     if (gHudFlash == HUD_FLASH_STARS && gGlobalTimer & 0x8) return;
     s8 showX = (gHudDisplay.stars < 100);
     print_text(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(HUD_STARS_X), HUD_TOP_Y, "^"); // 'Star' glyph
     if (showX) print_text((GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(HUD_STARS_X) + 16), HUD_TOP_Y, "*"); // 'X' glyph
     print_text_fmt_int((showX * 14) + GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(HUD_STARS_X - 16),
                        HUD_TOP_Y, "%d", gHudDisplay.stars);
-}
+}*/
 
 /**
  * Unused function that renders the amount of keys collected.
  * Leftover function from the beta version of the game.
  */
 void render_hud_keys(void) {
-    s16 i;
-
-    for (i = 0; i < gHudDisplay.keys; i++) {
+    /*u8 i;
+	u64 hudKeys = gHudDisplay.keys;
+	u8 count;
+	
+	while (hudKeys) {
+		count += hudKeys & 1;
+		hudKeys >>= 1;
+	}
+	
+    for (i = 0; i < count; i++) {
         print_text((i * 16) + 220, 142, "|"); // unused glyph - beta key
-    }
-}
-
-/**
- * Renders the timer when Mario start sliding in PSS.
- */
-void render_hud_timer(void) {
-    Texture *(*hudLUT)[58] = segmented_to_virtual(&main_hud_lut);
-    u16 timerValFrames = gHudDisplay.timer;
-    u16 timerMins = timerValFrames / (30 * 60);
-    u16 timerSecs = (timerValFrames - (timerMins * 1800)) / 30;
-    u16 timerFracSecs = ((timerValFrames - (timerMins * 1800) - (timerSecs * 30)) & 0xFFFF) / 3;
-
-#if MULTILANG
-    switch (eu_get_language()) {
-        case LANGUAGE_ENGLISH: print_text(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(150), 185,  "TIME"); break;
-        case LANGUAGE_FRENCH:  print_text(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(155), 185, "TEMPS"); break;
-        case LANGUAGE_GERMAN:  print_text(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(150), 185,  "ZEIT"); break;
-    }
-#else
-    print_text(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(150), 185, "TIME");
-#endif
-
-    print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(91), 185, "%0d", timerMins);
-    print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(71), 185, "%02d", timerSecs);
-    print_text_fmt_int(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(37), 185, "%d", timerFracSecs);
-
-    gSPDisplayList(gDisplayListHead++, dl_hud_img_begin);
-    render_hud_tex_lut(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(81), 32, (*hudLUT)[GLYPH_APOSTROPHE]);
-    render_hud_tex_lut(GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(46), 32, (*hudLUT)[GLYPH_DOUBLE_QUOTE]);
-    gSPDisplayList(gDisplayListHead++, dl_hud_img_end);
+    }*/
+	
+	if (gHudDisplay.keys) {
+		print_text(220, 142, "|"); // unused glyph - beta key
+	}
 }
 
 /**
@@ -483,46 +428,6 @@ void render_hud_timer(void) {
  */
 void set_hud_camera_status(s16 status) {
     sCameraHUD.status = status;
-}
-
-/**
- * Renders camera HUD glyphs using a table list, depending of
- * the camera status called, a defined glyph is rendered.
- */
-void render_hud_camera_status(void) {
-    Texture *(*cameraLUT)[6] = segmented_to_virtual(&main_hud_camera_lut);
-    s32 x = GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(54);
-    s32 y = 205;
-
-    if (sCameraHUD.status == CAM_STATUS_NONE) {
-        return;
-    }
-
-    gSPDisplayList(gDisplayListHead++, dl_hud_img_begin);
-    render_hud_tex_lut(x, y, (*cameraLUT)[GLYPH_CAM_CAMERA]);
-
-    switch (sCameraHUD.status & CAM_STATUS_MODE_GROUP) {
-        case CAM_STATUS_MARIO:
-            render_hud_tex_lut(x + 16, y, (*cameraLUT)[GLYPH_CAM_MARIO_HEAD]);
-            break;
-        case CAM_STATUS_LAKITU:
-            render_hud_tex_lut(x + 16, y, (*cameraLUT)[GLYPH_CAM_LAKITU_HEAD]);
-            break;
-        case CAM_STATUS_FIXED:
-            render_hud_tex_lut(x + 16, y, (*cameraLUT)[GLYPH_CAM_FIXED]);
-            break;
-    }
-
-    switch (sCameraHUD.status & CAM_STATUS_C_MODE_GROUP) {
-        case CAM_STATUS_C_DOWN:
-            render_hud_small_tex_lut(x + 4, y + 16, (*cameraLUT)[GLYPH_CAM_ARROW_DOWN]);
-            break;
-        case CAM_STATUS_C_UP:
-            render_hud_small_tex_lut(x + 4, y - 8, (*cameraLUT)[GLYPH_CAM_ARROW_UP]);
-            break;
-    }
-
-    gSPDisplayList(gDisplayListHead++, dl_hud_img_end);
 }
 
 /**
@@ -558,56 +463,29 @@ void render_hud(void) {
 #else
         create_dl_ortho_matrix();
 #endif
-
+		
+		render_hud_keys();
+		
         if (gCurrentArea != NULL && gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
             render_hud_cannon_reticle();
         }
-
-#ifndef DISABLE_LIVES
-        if (hudDisplayFlags & HUD_DISPLAY_FLAG_LIVES) {
-            render_hud_mario_lives();
-        }
-#endif
+		
+		render_hud_luigi_health();
 
         if (hudDisplayFlags & HUD_DISPLAY_FLAG_COIN_COUNT) {
             render_hud_coins();
         }
-
-        if (hudDisplayFlags & HUD_DISPLAY_FLAG_STAR_COUNT) {
-            render_hud_stars();
-        }
-
-        if (hudDisplayFlags & HUD_DISPLAY_FLAG_KEYS) {
-            render_hud_keys();
-        }
+		
+		#ifdef VANILLA_STYLE_CUSTOM_DEBUG
+		render_debug_mode();
+		#endif
 
 #ifdef BREATH_METER
         if (hudDisplayFlags & HUD_DISPLAY_FLAG_BREATH_METER) render_hud_breath_meter();
 #endif
 
-        if (hudDisplayFlags & HUD_DISPLAY_FLAG_CAMERA_AND_POWER) {
-            render_hud_power_meter();
-#ifdef PUPPYCAM
-            if (!gPuppyCam.enabled) {
-#endif
-            render_hud_camera_status();
-#ifdef PUPPYCAM
-            }
-#endif
-        }
-
-        if (hudDisplayFlags & HUD_DISPLAY_FLAG_TIMER) {
-            render_hud_timer();
-        }
-
         if (gSurfacePoolError & NOT_ENOUGH_ROOM_FOR_SURFACES) print_text(10, 40, "SURFACE POOL FULL");
         if (gSurfacePoolError & NOT_ENOUGH_ROOM_FOR_NODES) print_text(10, 60, "SURFACE NODE POOL FULL");
-
-#ifdef VANILLA_STYLE_CUSTOM_DEBUG
-        if (gCustomDebugMode) {
-            render_debug_mode();
-        }
-#endif
 #ifdef PUPPYPRINT
         print_set_envcolour(255, 255, 255, 255);
 #endif

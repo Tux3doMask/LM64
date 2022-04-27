@@ -27,6 +27,10 @@ s32 check_common_idle_cancels(struct MarioState *m) {
         return set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
 
+    if (m->input & INPUT_A_PRESSED) {
+        return set_jumping_action(m, ACT_JUMP, 0);
+    }
+
     if (m->input & INPUT_OFF_FLOOR) {
         return set_mario_action(m, ACT_FREEFALL, 0);
     }
@@ -42,6 +46,14 @@ s32 check_common_idle_cancels(struct MarioState *m) {
     if (m->input & INPUT_NONZERO_ANALOG) {
         m->faceAngle[1] = (s16) m->intendedYaw;
         return set_mario_action(m, ACT_WALKING, 0);
+    }
+
+    if (m->input & INPUT_B_PRESSED) {
+        return set_mario_action(m, ACT_PUNCHING, 0);
+    }
+
+    if (m->input & INPUT_Z_DOWN) {
+        return set_mario_action(m, ACT_START_CROUCHING, 0);
     }
 
     return FALSE;
@@ -60,6 +72,10 @@ s32 check_common_hold_idle_cancels(struct MarioState *m) {
 
     if (m->input & INPUT_STOMPED) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
+    }
+
+    if (m->input & INPUT_A_PRESSED) {
+        return set_jumping_action(m, ACT_HOLD_JUMP, 0);
     }
 
     if (m->input & INPUT_OFF_FLOOR) {
@@ -96,7 +112,7 @@ s32 act_idle(struct MarioState *m) {
         return set_mario_action(m, ACT_COUGHING, 0);
     }
 
-    if (!(m->actionArg & 1) && m->health < 0x300) {
+    if (!(m->actionArg & 1) && m->health <= 30) {
         return set_mario_action(m, ACT_PANTING, 0);
     }
 
@@ -457,6 +473,10 @@ s32 act_standing_against_wall(struct MarioState *m) {
         return set_mario_action(m, ACT_FIRST_PERSON, 0);
     }
 
+    if (m->input & INPUT_B_PRESSED) {
+        return set_mario_action(m, ACT_PUNCHING, 0);
+    }
+
     set_mario_animation(m, MARIO_ANIM_STAND_AGAINST_WALL);
     stationary_ground_step(m);
     return FALSE;
@@ -510,6 +530,10 @@ s32 act_crouching(struct MarioState *m) {
         return set_mario_action(m, ACT_START_CRAWLING, 0);
     }
 
+    if (m->input & INPUT_B_PRESSED) {
+        return set_mario_action(m, ACT_PUNCHING, 9);
+    }
+
     stationary_ground_step(m);
     set_mario_animation(m, MARIO_ANIM_CROUCHING);
     return FALSE;
@@ -520,7 +544,7 @@ s32 act_panting(struct MarioState *m) {
         return set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
 
-    if (m->health >= 0x500) {
+    if (m->health >= 50) {
         return set_mario_action(m, ACT_IDLE, 0);
     }
 
@@ -547,7 +571,7 @@ s32 act_hold_panting_unused(struct MarioState *m) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
 
-    if (m->health >= 0x500) {
+    if (m->health >= 50) {
         return set_mario_action(m, ACT_HOLD_IDLE, 0);
     }
 
@@ -576,6 +600,10 @@ s32 act_braking_stop(struct MarioState *m) {
 
     if (m->input & INPUT_OFF_FLOOR) {
         return set_mario_action(m, ACT_FREEFALL, 0);
+    }
+
+    if (m->input & INPUT_B_PRESSED) {
+        return set_mario_action(m, ACT_PUNCHING, 0);
     }
 
     if (!(m->input & INPUT_FIRST_PERSON)
@@ -781,7 +809,7 @@ s32 landing_step(struct MarioState *m, s32 animID, u32 action) {
     return FALSE;
 }
 
-s32 check_common_landing_cancels(struct MarioState *m, UNUSED u32 action) {
+s32 check_common_landing_cancels(struct MarioState *m, u32 action) {
     if (m->input & INPUT_STOMPED) {
         return set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -790,8 +818,20 @@ s32 check_common_landing_cancels(struct MarioState *m, UNUSED u32 action) {
         return set_mario_action(m, ACT_IDLE, 0);
     }
 
+    if (m->input & INPUT_A_PRESSED) {
+        if (!action) {
+            return set_jump_from_landing(m);
+        } else {
+            return set_jumping_action(m, action, 0);
+        }
+    }
+
     if (m->input & (INPUT_NONZERO_ANALOG | INPUT_A_PRESSED | INPUT_OFF_FLOOR | INPUT_ABOVE_SLIDE)) {
         return check_common_action_exits(m);
+    }
+
+    if (m->input & INPUT_B_PRESSED) {
+        return set_mario_action(m, ACT_PUNCHING, 0);
     }
 
     return FALSE;
@@ -1032,7 +1072,7 @@ s32 check_common_stationary_cancels(struct MarioState *m) {
     }
 
     if (m->action != ACT_NO_STANDING_DEATH) {
-        if (m->health < 0x100) {
+        if (m->health < 1) {
             update_mario_sound_and_camera(m);
             return drop_and_set_mario_action(m, ACT_STANDING_DEATH, 0);
         }

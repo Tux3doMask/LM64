@@ -21,7 +21,7 @@ enum PrintfGlyphs {
     GLYPH_COIN            = 49,
     GLYPH_RED_COIN        = 50,
     GLYPH_SILVER_COIN     = 51,
-    GLYPH_MARIO_HEAD      = 52,
+    GLYPH_HEART      = 52,
     GLYPH_STAR            = 53,
     GLYPH_PERIOD          = 54,
     GLYPH_BETA_KEY        = 55,

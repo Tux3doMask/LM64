@@ -15,6 +15,8 @@
 #include "graph_node.h"
 #include "surface_collision.h"
 #include "game/puppylights.h"
+#include "game/puppyprint.h"
+#include "game/level_update.h"
 
 // Macros for retrieving arguments from behavior scripts.
 #define BHV_CMD_GET_1ST_U8(index)  (u8)((gCurBhvCommand[index] >> 24) & 0xFF) // unused
@@ -33,15 +35,17 @@
 /* poltergust related defines */
 
 //needs to be high, 1000.0f seems good for now
-#define MAX_SUCK_DISTANCE 800.0f
+#define MAX_SUCK_DISTANCE				   500.0f
 
 // value for max angle of suck, second number is width in degrees
-#define SUCK_WIDTH        60
+#define SUCK_WIDTH 					       60
+
+#define POLTERGUST_HEIGHT_CHANGE_AMOUNT    1.0f
 
 // set this to tan of half SUCK_WIDTH
-#define MAX_SUCK_HEIGHT   0.57735
+#define MAX_SUCK_HEIGHT   				   tans(DEGREES(SUCK_WIDTH / 2))
 
-#define MAX_SUCK_ANGLE    0x5B * (SUCK_WIDTH / 2)
+#define MAX_SUCK_ANGLE  				   0x5B * (SUCK_WIDTH / 2)
 
 
 // Unused function that directly jumps to a behavior command and resets the object's stack index.
@@ -847,46 +851,56 @@ void cur_obj_update(void) {
 		o->oAngleToMario = obj_angle_to_object(o, gMarioObject);
 	}
 	
-	if (objFlags & OBJ_FLAG_VACUUM_LATCHABLE/* &&
-		!(o->oPoltergustStatus & POLTERGUST_GHOST_LATCHED)*/) {
+	if (objFlags & OBJ_FLAG_VACUUM_LATCHABLE &&
+		!(gMarioObject->oPoltergustStatus & POLTERGUST_GHOST_LATCHED)) {
 		// code for checking if in vaccum goes here
 		if (distanceFromMario <= MAX_SUCK_DISTANCE) {
 			f32 dx = o->oPosX - gMarioObject->oPosX;
 			f32 dy = o->oPosY - gMarioObject->oPosY;
 			f32 dz = o->oPosZ - gMarioObject->oPosZ;
 			
-			//if (gPlayer1Controller->buttonDown & C_BUTTON
+			// jank af code to make it seem like poltergust is tilted up or down
+			if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+				dy -= distanceFromMario * POLTERGUST_HEIGHT_CHANGE_AMOUNT;
+			} else if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+				dy += distanceFromMario * POLTERGUST_HEIGHT_CHANGE_AMOUNT;
+			}
 			
 			s16 dYawToObject = atan2s(dz, dx) - gMarioObject->header.gfx.angle[1];
 			
-			// 120 degrees total, or 60 each way
 			if (
-				-MAX_SUCK_ANGLE <= dYawToObject && 
-				dYawToObject <= MAX_SUCK_ANGLE &&
-				dy <= MAX_SUCK_HEIGHT * distanceFromMario &&
-				dy >= -MAX_SUCK_HEIGHT * distanceFromMario) {
+			-MAX_SUCK_ANGLE <= dYawToObject && 
+			dYawToObject <= MAX_SUCK_ANGLE &&
+			dy <= MAX_SUCK_HEIGHT * distanceFromMario &&
+			dy >= -MAX_SUCK_HEIGHT * distanceFromMario) {
 				if (gPlayer1Controller->buttonDown & R_TRIG) {
 					o->oPoltergustStatus |= POLTERGUST_IN_STREAM;
-					if (o->oPoltergustStatus & POLTERGUST_GHOST_FLASHED) {
-						o->oPoltergustStatus |= POLTERGUST_GHOST_LATCHED;
-					}
 				} else {
-					o->oPoltergustStatus = POLTERGUST_NOTHING;
+					o->oPoltergustStatus = o->oPoltergustStatus & (0xFFFFFFFF - POLTERGUST_IN_STREAM);
 					if (!(gPlayer1Controller->buttonDown & B_BUTTON)) {
 						o->oPoltergustStatus = POLTERGUST_GHOST_FLASHED;
+						o->oStunnedTimer = 0;
 					}
+				}
+			}
+			if (o->oPoltergustStatus & POLTERGUST_GHOST_FLASHED) {
+				o->oStunnedTimer++;
+				if (o->oStunnedTimer >= 60) {
+					o->oPoltergustStatus = POLTERGUST_NOTHING;
 				}
 			}
 		}
 	}
 	
 	if (o->oPoltergustStatus & POLTERGUST_GHOST_LATCHED) {
-		gMarioObject->oPoltergustLatchedX = o->oPosX;
-		gMarioObject->oPoltergustLatchedY = o->oPosY;
-		gMarioObject->oPoltergustLatchedZ = o->oPosZ;
+		/*gMarioObject->oPoltergustLatchedX = ;
+		gMarioObject->oPoltergustLatchedY = ;*/
+		//gMarioState->poltergustLatchedPos = {o->oPosX, o->oPosY, o->oPosZ};
+		vec3f_copy(gMarioState->poltergustLatchedPos, &o->oPosVec);
 		o->oVelY = 10.0f;
 		if (!(gPlayer1Controller->buttonDown & R_TRIG)) {
 			o->oPoltergustStatus = POLTERGUST_NOTHING;
+			gMarioObject->oPoltergustStatus =  POLTERGUST_NOTHING;
 		}
 	}
 
@@ -896,17 +910,17 @@ void cur_obj_update(void) {
 		o->oSubAction = 0;
 		o->oPrevAction = o->oAction;
 	}
-
+	
 	// Execute the behavior script.
 	gCurBhvCommand = o->curBhvCommand;
-
+	
 	do {
 		bhvCmdProc = BehaviorCmdTable[*gCurBhvCommand >> 24];
 		bhvProcResult = bhvCmdProc();
 	} while (bhvProcResult == BHV_PROC_CONTINUE);
 
 	o->curBhvCommand = gCurBhvCommand;
-
+	
 	// Increment the object's timer.
 	if (o->oTimer < 0x3FFFFFFF) {
 		o->oTimer++;

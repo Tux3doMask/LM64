@@ -288,7 +288,7 @@ struct PuppyLight {
 #ifdef PUPPYLIGHTS
 #define MAX_OBJECT_FIELDS 0x51
 #else
-#define MAX_OBJECT_FIELDS 0x53
+#define MAX_OBJECT_FIELDS 0x50
 #endif
 
 struct Object {
@@ -466,7 +466,7 @@ struct MarioState {
     /*0xAA*/ s16 numStars;
     /*0xAC*/ s8 numKeys; // Unused key mechanic
     /*0xAD*/ s8 numLives;
-    /*0xAE*/ s16 health;
+    /*0xAE*/ u8 health;
     /*0xB0*/ s16 animYTrans;
     /*0xB2*/ u8 hurtCounter;
     /*0xB3*/ u8 healCounter;
@@ -493,6 +493,8 @@ struct MarioState {
            Angle moveYaw;
            Angle ceilYaw;
            Angle wallYaw;
+           Vec3f poltergustLatchedPos;
+              u8 poltergustStatus;
     // -- HackerSM64 MarioState fields end --
 };
 

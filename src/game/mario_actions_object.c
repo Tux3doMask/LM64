@@ -443,7 +443,7 @@ s32 check_common_object_cancels(struct MarioState *m) {
         return drop_and_set_mario_action(m, ACT_SQUISHED, 0);
     }
 
-    if (m->health < 0x100) {
+    if (m->health < 1) {
         return drop_and_set_mario_action(m, ACT_STANDING_DEATH, 0);
     }
 

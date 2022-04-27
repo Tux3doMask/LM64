@@ -792,11 +792,7 @@ void bowser_act_hit_edge(void) {
  */
 void bowser_act_spit_fire_onto_floor(void) {
     // Set fixed rand value if Mario is low health
-    if (gHudDisplay.wedges < 4) {
-        o->oBowserRandSplitFloor = 3;
-    } else {
-        o->oBowserRandSplitFloor = random_float() * 3.0f + 1.0f;
-    }
+    o->oBowserRandSplitFloor = random_float() * 3.0f + 1.0f;
 
     // Play animation and split fire at a specific frame
     cur_obj_init_animation_with_sound(BOWSER_ANIM_BREATH_QUICK);
