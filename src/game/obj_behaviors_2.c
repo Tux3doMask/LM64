@@ -743,6 +743,8 @@ static void treat_far_home_as_mario(f32 threshold) {
     }
 }
 
+#include "behaviors/ghost.inc.c"
+
 #include "behaviors/koopa.inc.c" // TODO: Text arg field name
 #include "behaviors/pokey.inc.c"
 #include "behaviors/swoop.inc.c"

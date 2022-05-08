@@ -21,16 +21,16 @@ enum BreathMeterAnimation {
 };
 #endif
 
-enum CameraHUDLUT {
+/*enum CameraHUDLUT {
     GLYPH_CAM_CAMERA,
     GLYPH_CAM_MARIO_HEAD,
     GLYPH_CAM_LAKITU_HEAD,
     GLYPH_CAM_FIXED,
     GLYPH_CAM_ARROW_UP,
     GLYPH_CAM_ARROW_DOWN
-};
+};*/
 
-void set_hud_camera_status(s16 status);
+//void set_hud_camera_status(s16 status);
 void render_hud(void);
 
 #endif // HUD_H

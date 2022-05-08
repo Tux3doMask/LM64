@@ -1,7 +1,7 @@
 #include <PR/ultratypes.h>
 
 #include "sm64.h"
-#include "mario_actions_object.h"
+//#include "mario_actions_object.h"
 #include "types.h"
 #include "mario_step.h"
 #include "mario.h"
@@ -14,17 +14,17 @@
  * Used by act_punching() to determine Mario's forward velocity during each
  * animation frame.
  */
-s8 sPunchingForwardVelocities[8] = { 0, 1, 1, 2, 3, 5, 7, 10 };
+//s8 sPunchingForwardVelocities[8] = { 0, 1, 1, 2, 3, 5, 7, 10 };
 
-void animated_stationary_ground_step(struct MarioState *m, s32 animation, u32 endAction) {
+/*void animated_stationary_ground_step(struct MarioState *m, s32 animation, u32 endAction) {
     stationary_ground_step(m);
     set_mario_animation(m, animation);
     if (is_anim_at_end(m)) {
         set_mario_action(m, endAction, 0);
     }
-}
+}*/
 
-s32 mario_update_punch_sequence(struct MarioState *m) {
+/*s32 mario_update_punch_sequence(struct MarioState *m) {
     u32 endAction, crouchEndAction;
     s32 animFrame;
 
@@ -142,9 +142,9 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
     }
 
     return FALSE;
-}
+}*/
 
-s32 act_punching(struct MarioState *m) {
+/*s32 act_punching(struct MarioState *m) {
     if (m->input & INPUT_STOMPED) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -170,9 +170,9 @@ s32 act_punching(struct MarioState *m) {
     mario_update_punch_sequence(m);
     perform_ground_step(m);
     return FALSE;
-}
+}*/
 
-s32 act_picking_up(struct MarioState *m) {
+/*s32 act_picking_up(struct MarioState *m) {
     if (m->input & INPUT_STOMPED) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -208,9 +208,9 @@ s32 act_picking_up(struct MarioState *m) {
 
     stationary_ground_step(m);
     return FALSE;
-}
+}*/
 
-s32 act_dive_picking_up(struct MarioState *m) {
+/*s32 act_dive_picking_up(struct MarioState *m) {
     if (m->input & INPUT_STOMPED) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -237,9 +237,9 @@ s32 act_dive_picking_up(struct MarioState *m) {
 
     animated_stationary_ground_step(m, MARIO_ANIM_STOP_SLIDE_LIGHT_OBJ, ACT_HOLD_IDLE);
     return FALSE;
-}
+}*/
 
-s32 act_placing_down(struct MarioState *m) {
+/*s32 act_placing_down(struct MarioState *m) {
     if (m->input & INPUT_STOMPED) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -254,9 +254,9 @@ s32 act_placing_down(struct MarioState *m) {
 
     animated_stationary_ground_step(m, MARIO_ANIM_PLACE_LIGHT_OBJ, ACT_IDLE);
     return FALSE;
-}
+}*/
 
-s32 act_throwing(struct MarioState *m) {
+/*s32 act_throwing(struct MarioState *m) {
     if (m->heldObj && (m->heldObj->oInteractionSubtype & INT_SUBTYPE_HOLDABLE_NPC)) {
         return set_mario_action(m, ACT_PLACING_DOWN, 0);
     }
@@ -280,9 +280,9 @@ s32 act_throwing(struct MarioState *m) {
 
     animated_stationary_ground_step(m, MARIO_ANIM_GROUND_THROW, ACT_IDLE);
     return FALSE;
-}
+}*/
 
-s32 act_heavy_throw(struct MarioState *m) {
+/*s32 act_heavy_throw(struct MarioState *m) {
     if (m->input & INPUT_STOMPED) {
         return drop_and_set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -302,9 +302,9 @@ s32 act_heavy_throw(struct MarioState *m) {
 
     animated_stationary_ground_step(m, MARIO_ANIM_HEAVY_THROW, ACT_IDLE);
     return FALSE;
-}
+}*/
 
-s32 act_stomach_slide_stop(struct MarioState *m) {
+/*s32 act_stomach_slide_stop(struct MarioState *m) {
     if (m->input & INPUT_STOMPED) {
         return set_mario_action(m, ACT_SHOCKWAVE_BOUNCE, 0);
     }
@@ -319,9 +319,9 @@ s32 act_stomach_slide_stop(struct MarioState *m) {
 
     animated_stationary_ground_step(m, MARIO_ANIM_SLOW_LAND_FROM_DIVE, ACT_IDLE);
     return FALSE;
-}
+}*/
 
-s32 act_picking_up_bowser(struct MarioState *m) {
+/*s32 act_picking_up_bowser(struct MarioState *m) {
     if (m->actionState == ACT_STATE_PICKING_UP_GRAB) {
         m->actionState = ACT_STATE_PICKING_UP_HOLDING;
         m->angleVel[1] = 0;
@@ -340,9 +340,9 @@ s32 act_picking_up_bowser(struct MarioState *m) {
 
     stationary_ground_step(m);
     return FALSE;
-}
+}*/
 
-s32 act_holding_bowser(struct MarioState *m) {
+/*s32 act_holding_bowser(struct MarioState *m) {
     s16 spin;
 
     if (m->input & INPUT_B_PRESSED) {
@@ -411,9 +411,9 @@ s32 act_holding_bowser(struct MarioState *m) {
     }
 
     return FALSE;
-}
+}*/
 
-s32 act_releasing_bowser(struct MarioState *m) {
+/*s32 act_releasing_bowser(struct MarioState *m) {
     if (++m->actionTimer == 1) {
         if (m->actionArg == 0) {
 #if ENABLE_RUMBLE
@@ -431,9 +431,9 @@ s32 act_releasing_bowser(struct MarioState *m) {
     m->angleVel[1] = 0;
     animated_stationary_ground_step(m, MARIO_ANIM_RELEASE_BOWSER, ACT_IDLE);
     return FALSE;
-}
+}*/
 
-s32 check_common_object_cancels(struct MarioState *m) {
+/*s32 check_common_object_cancels(struct MarioState *m) {
     f32 waterSurface = m->waterLevel - 100;
     if (m->pos[1] < waterSurface) {
         return set_water_plunge_action(m);
@@ -448,37 +448,38 @@ s32 check_common_object_cancels(struct MarioState *m) {
     }
 
     return FALSE;
-}
+}*/
 
-s32 mario_execute_object_action(struct MarioState *m) {
+
+/*s32 mario_execute_object_action(struct MarioState *m) {
     s32 cancel = FALSE;
 
     if (check_common_object_cancels(m)) {
         return TRUE;
     }
 
-    if (mario_update_quicksand(m, 0.5f)) {
-        return TRUE;
-    }
+    //if (mario_update_quicksand(m, 0.5f)) {
+    //    return TRUE;
+    //}
 
-    /* clang-format off */
+    * clang-format off *
     switch (m->action) {
-        case ACT_PUNCHING:           cancel = act_punching(m);           break;
-        case ACT_PICKING_UP:         cancel = act_picking_up(m);         break;
-        case ACT_DIVE_PICKING_UP:    cancel = act_dive_picking_up(m);    break;
-        case ACT_STOMACH_SLIDE_STOP: cancel = act_stomach_slide_stop(m); break;
-        case ACT_PLACING_DOWN:       cancel = act_placing_down(m);       break;
-        case ACT_THROWING:           cancel = act_throwing(m);           break;
-        case ACT_HEAVY_THROW:        cancel = act_heavy_throw(m);        break;
-        case ACT_PICKING_UP_BOWSER:  cancel = act_picking_up_bowser(m);  break;
-        case ACT_HOLDING_BOWSER:     cancel = act_holding_bowser(m);     break;
-        case ACT_RELEASING_BOWSER:   cancel = act_releasing_bowser(m);   break;
+        //case ACT_PUNCHING:           cancel = act_punching(m);           break;
+        //case ACT_PICKING_UP:         cancel = act_picking_up(m);         break;
+        //case ACT_DIVE_PICKING_UP:    cancel = act_dive_picking_up(m);    break;
+        //case ACT_STOMACH_SLIDE_STOP: cancel = act_stomach_slide_stop(m); break;
+        //case ACT_PLACING_DOWN:       cancel = act_placing_down(m);       break;
+        //case ACT_THROWING:           cancel = act_throwing(m);           break;
+        //case ACT_HEAVY_THROW:        cancel = act_heavy_throw(m);        break;
+        //case ACT_PICKING_UP_BOWSER:  cancel = act_picking_up_bowser(m);  break;
+        //case ACT_HOLDING_BOWSER:     cancel = act_holding_bowser(m);     break;
+        //case ACT_RELEASING_BOWSER:   cancel = act_releasing_bowser(m);   break;
     }
-    /* clang-format on */
+    * clang-format on *
 
     if (!cancel && (m->input & INPUT_IN_WATER)) {
         m->particleFlags |= PARTICLE_IDLE_WATER_WAVE;
     }
 
     return cancel;
-}
+}*/

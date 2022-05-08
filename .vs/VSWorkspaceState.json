@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\bin"
   ],
-  "SelectedNode": "\\.gitattributes",
+  "SelectedNode": "\\assets",
   "PreviewInSolutionExplorer": false
 }

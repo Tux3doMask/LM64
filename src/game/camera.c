@@ -2859,57 +2859,38 @@ void update_camera(struct Camera *c) {
     OSTime first   = osGetTime();
     OSTime colTime = collisionTime[perfIteration];
 #endif
-    gCamera = c;
-    update_camera_hud_status(c);
-
-    // Initialize the camera
-    sStatusFlags &= ~CAM_FLAG_FRAME_AFTER_CAM_INIT;
-    if (gCameraMovementFlags & CAM_MOVE_INIT_CAMERA) {
-        init_camera(c);
-        gCameraMovementFlags &= ~CAM_MOVE_INIT_CAMERA;
-        sStatusFlags |= CAM_FLAG_FRAME_AFTER_CAM_INIT;
-    }
-
+	
     if (c->cutscene != CUTSCENE_NONE) {
-        sYawSpeed = 0;
         play_cutscene(c);
-        sFramesSinceCutsceneEnded = 0;
+		// I moved update_lakitu here which should make play_cutscene useable?
+		update_lakitu(c);
+        //sFramesSinceCutsceneEnded = 0;
     } else {
-        // Clear the recent cutscene after 8 frames
-        if (gRecentCutscene != CUTSCENE_NONE && sFramesSinceCutsceneEnded < 8) {
+		// Clear the recent cutscene after 8 frames
+        /*if (gRecentCutscene != CUTSCENE_NONE && sFramesSinceCutsceneEnded < 8) {
             sFramesSinceCutsceneEnded++;
             if (sFramesSinceCutsceneEnded >= 8) {
                 gRecentCutscene = CUTSCENE_NONE;
                 sFramesSinceCutsceneEnded = 0;
             }
-        }
-    }
-	
-    // If not in a cutscene, do custom camera
-    if (c->cutscene == CUTSCENE_NONE) {
-		Vec3f pos;
-        s16 camYaw = DEGREES(0);
-		s16 pitch = 0x05B0;
-		f32 posY;
-		f32 focusY = 0.0f;
-		f32 yOff = 125.f;
-		f32 baseDist = 1000.f;
+        }*/
 		
-		posY = gMarioState->pos[1] + 500.0f;
-		focus_on_mario(c->focus, pos, posY + yOff, focusY + yOff, sLakituDist + baseDist, pitch, camYaw);
-
-		lakitu_zoom(400.f, 0x900);
-		c->yaw = DEGREES(0);
-		c->pos[0] = pos[0];
-		c->pos[2] = pos[2];
-		c->pos[1] = posY;
-        
+		gLakituState.focus[0] = sMarioCamState->pos[0];
+		gLakituState.focus[1] = sMarioCamState->pos[1] + 250.0f;
+		gLakituState.focus[2] = sMarioCamState->pos[2];
+		
+		gLakituState.pos[0] = gMarioState->pos[0];
+		gLakituState.pos[1] = gMarioState->pos[1] + 500.0f;
+		gLakituState.pos[2] = gMarioState->pos[2] + 1000.0f;
     }
-    // Start any Mario-related cutscenes
-    start_cutscene(c, get_cutscene_from_mario_status(c));
-    gCollisionFlags &= ~COLLISION_FLAG_CAMERA;
 	
-    update_lakitu(c);
+	// NOTE: because of start_cutscene being removed c->cutscene must be set directly
+	
+	/*start_cutscene(c, get_cutscene_from_mario_status(c));
+	gCollisionFlags &= ~COLLISION_FLAG_CAMERA;*/
+	
+	// TO DO: read through this and remove junk
+    //update_lakitu(c);
 	
 #if PUPPYPRINT_DEBUG
     profiler_update(cameraTime, first);
@@ -3562,7 +3543,7 @@ s32 update_camera_hud_status(struct Camera *c) {
     if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
         status |= CAM_STATUS_C_UP;
     }
-    set_hud_camera_status(status);
+    //set_hud_camera_status(status);
     return status;
 }
 

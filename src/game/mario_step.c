@@ -52,8 +52,8 @@ f32 get_additive_y_vel_for_jumps(void) {
  * this could be used for checking if Mario was on the trampoline.
  * It could, for example, make him bounce.
  */
-void stub_mario_step_1(UNUSED struct MarioState *x) {
-}
+/*void stub_mario_step_1(UNUSED struct MarioState *x) {
+}*/
 
 /**
  * Does nothing. This is only called by the beta trampoline.
@@ -174,7 +174,7 @@ u32 mario_update_quicksand(struct MarioState *m, f32 sinkingSpeed) {
     return FALSE;
 }
 
-u32 mario_push_off_steep_floor(struct MarioState *m, u32 action, u32 actionArg) {
+/*u32 mario_push_off_steep_floor(struct MarioState *m, u32 action, u32 actionArg) {
     s16 floorDYaw = m->floorYaw - m->faceAngle[1];
 
     if (floorDYaw > -0x4000 && floorDYaw < 0x4000) {
@@ -186,7 +186,7 @@ u32 mario_push_off_steep_floor(struct MarioState *m, u32 action, u32 actionArg) 
     }
 
     return set_mario_action(m, action, actionArg);
-}
+}*/
 
 u32 mario_update_moving_sand(struct MarioState *m) {
     struct Surface *floor = m->floor;
@@ -284,42 +284,47 @@ static s32 perform_ground_quarter_step(struct MarioState *m, Vec3f nextPos) {
 
     f32 floorHeight = find_floor(nextPos[0], nextPos[1], nextPos[2], &floor);
     f32 ceilHeight = find_mario_ceil(nextPos, floorHeight, &ceil);
-
-    f32 waterLevel = find_water_level(nextPos[0], nextPos[2]);
+	
+    //f32 waterLevel = find_water_level(nextPos[0], nextPos[2]);
 
     if (floor == NULL) {
         return GROUND_STEP_HIT_WALL_STOP_QSTEPS;
     }
 
-    if ((m->action & ACT_FLAG_RIDING_SHELL) && floorHeight < waterLevel) {
+    /*if ((m->action & ACT_FLAG_RIDING_SHELL) && floorHeight < waterLevel) {
         floorHeight = waterLevel;
         floor = &gWaterSurfacePseudoFloor;
         floor->originOffset = -floorHeight;
+    }*/
+	
+	// NOTE: theres no way this is less efficient
+	if (floorHeight + 160.0f >= ceilHeight) {
+        return GROUND_STEP_HIT_WALL_STOP_QSTEPS;
     }
-
+	
     if (nextPos[1] > floorHeight + 100.0f) {
-        if (nextPos[1] + 160.0f >= ceilHeight) {
+        /*if (nextPos[1] + 160.0f >= ceilHeight) {
             return GROUND_STEP_HIT_WALL_STOP_QSTEPS;
-        }
+        }*/
 
         vec3f_copy(m->pos, nextPos);
         set_mario_floor(m, floor, floorHeight);
         return GROUND_STEP_LEFT_GROUND;
     }
 
-    if (floorHeight + 160.0f >= ceilHeight) {
+    /*if (floorHeight + 160.0f >= ceilHeight) {
         return GROUND_STEP_HIT_WALL_STOP_QSTEPS;
-    }
+    }*/
 
     vec3f_set(m->pos, nextPos[0], floorHeight, nextPos[2]);
-
+	
     // H64 TODO: Add config opt & check if floor is slippery
     if (!SURFACE_IS_UNSAFE(floor->type)) {
         vec3f_copy(m->lastSafePos, m->pos);
     }
 
     set_mario_floor(m, floor, floorHeight);
-
+	
     if (m->wall != NULL) {
         oldWallDYaw = abs_angle_diff(m->wallYaw, m->faceAngle[1]);
     } else {
@@ -349,12 +354,13 @@ s32 perform_ground_step(struct MarioState *m) {
     const f32 numSteps = 4.0f;
 
     set_mario_wall(m, NULL);
-
+	
+	// NOTE: because of the low speeds luigi should be travelling perhaps i can make less steps per frame
     for (i = 0; i < 4; i++) {
         intendedPos[0] = m->pos[0] + m->floor->normal.y * (m->vel[0] / numSteps);
         intendedPos[2] = m->pos[2] + m->floor->normal.y * (m->vel[2] / numSteps);
         intendedPos[1] = m->pos[1];
-
+		
         stepResult = perform_ground_quarter_step(m, intendedPos);
         if (stepResult == GROUND_STEP_LEFT_GROUND || stepResult == GROUND_STEP_HIT_WALL_STOP_QSTEPS) {
             break;
@@ -467,12 +473,12 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
     f32 floorHeight = find_floor(nextPos[0], nextPos[1], nextPos[2], &floor);
     f32 ceilHeight = find_mario_ceil(nextPos, floorHeight, &ceil);
 
-    f32 waterLevel = find_water_level(nextPos[0], nextPos[2]);
+    //f32 waterLevel = find_water_level(nextPos[0], nextPos[2]);
 
     //! The water pseudo floor is not referenced when your intended qstep is
     // out of bounds, so it won't detect you as landing.
 
-    if (floor == NULL) {
+    /*if (floor == NULL) {
         if (nextPos[1] <= m->floorHeight) {
             m->pos[1] = m->floorHeight;
             return AIR_STEP_LANDED;
@@ -480,13 +486,13 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
 
         m->pos[1] = nextPos[1];
         return AIR_STEP_HIT_WALL;
-    }
+    }*/
 
-    if ((m->action & ACT_FLAG_RIDING_SHELL) && floorHeight < waterLevel) {
+    /*if ((m->action & ACT_FLAG_RIDING_SHELL) && floorHeight < waterLevel) {
         floorHeight = waterLevel;
         floor = &gWaterSurfacePseudoFloor;
         floor->originOffset = -floorHeight;
-    }
+    }*/
 
     //! This check uses f32, but findFloor uses short (overflow jumps)
     if (nextPos[1] <= floorHeight) {
@@ -506,7 +512,7 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
     if (nextPos[1] + 160.0f > ceilHeight) {
         if (m->vel[1] >= 0.0f) {
             m->vel[1] = 0.0f;
-
+            /*
 #ifdef HANGING_FIX
             // Grab ceiling unless they just were grabbing a ceiling
             if (!(m->prevAction & ACT_FLAG_HANGING) && ceil != NULL && ceil->type == SURFACE_HANGABLE) {
@@ -514,7 +520,7 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
             if ((stepArg & AIR_STEP_CHECK_HANG) && ceil != NULL && ceil->type == SURFACE_HANGABLE) {
 #endif
                 return AIR_STEP_GRABBED_CEILING;
-            }
+            }*/
 
             return AIR_STEP_NONE;
         }

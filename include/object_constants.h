@@ -23,10 +23,10 @@ enum ObjActiveFlags {
 // Poltergust junk
 enum poltergustFlags {
 	POLTERGUST_NOTHING                         = (0 << 0), // 0x0000
-	
 	POLTERGUST_IN_STREAM                       = (1 << 0), // 0x0001
 	POLTERGUST_GHOST_FLASHED                   = (1 << 1), // 0x0002
 	POLTERGUST_GHOST_LATCHED                   = (1 << 2), // 0x0004
+	POLTERGUST_GHOST_IN_FRONT				   = (1 << 3), // 0x0008
 };
 
 /* respawnInfoType */
@@ -1421,6 +1421,20 @@ enum animIDsPeach { //! TODO: anim names 0-3 & 6-8
     PEACH_ANIM_KISS,
     PEACH_ANIM_WAVING,
 };
+
+/* Ghost */
+	/* oAction */
+	#define GHOST_SPAWN                                     0x0
+	#define GHOST_CHASE										0x1
+	#define GHOST_CHASE_CLOSE								0x2
+	#define GHOST_PUNCH										0x3
+	#define GHOST_SUCCESS									0x4
+	#define GHOST_FAIL										0x5
+	#define GHOST_CAUGHT									0x6
+	#define GHOST_RUNNING									0x7
+	#define GHOST_RESET										0x8
+	#define GHOST_DESPAWN									0x9
+
 
 /* Yoshi */
     /* oAction */

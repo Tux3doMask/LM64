@@ -277,7 +277,8 @@ enum MarioActionFlags {
 #define ACT_UNUSED_00C                 0x0000000C // (0x00C)
 #define ACT_IN_QUICKSAND               0x0002020D // (0x00D | ACT_FLAG_STATIONARY | ACT_FLAG_INVULNERABLE)
 #define ACT_NO_STANDING_DEATH          0x0002020E // (0x00E | ACT_FLAG_STATIONARY | ACT_FLAG_INVULNERABLE)
-#define ACT_UNUSED_00F                 0x0000000F // (0x00F)
+//#define ACT_POLTERGUST_SUCKING         0x0000000F // (0x00F)
+#define ACT_POLTERGUST_SUCKING         (0x00F | ACT_FLAG_STATIONARY | ACT_FLAG_PAUSE_EXIT)
 #define ACT_UNUSED_010                 0x00000010 // (0x010)
 
 #define ACT_UNUSED_01F                 0x0000001F // (0x01F)
@@ -312,7 +313,8 @@ enum MarioActionFlags {
 
 // group 0x040: moving (ground) actions
 #define ACT_WALKING                    0x04000440 // (0x040 | ACT_FLAG_MOVING | ACT_FLAG_ALLOW_FIRST_PERSON)
-#define ACT_UNUSED_041                 0x00000041 // (0x041)
+//#define ACT_POLTERGUST_SUCKING_WALK    0x00000041 // (0x041)
+#define ACT_POLTERGUST_SUCKING_WALK    (0x041 | ACT_FLAG_MOVING)
 #define ACT_HOLD_WALKING               0x00000442 // (0x042 | ACT_FLAG_MOVING)
 #define ACT_TURNING_AROUND             0x00000443 // (0x043 | ACT_FLAG_MOVING)
 #define ACT_FINISH_TURNING_AROUND      0x00000444 // (0x044 | ACT_FLAG_MOVING)

@@ -86,9 +86,9 @@ struct PowerMeterHUD {
     s16 y;
 };
 
-struct CameraHUD {
+/*struct CameraHUD {
     s16 status;
-};
+};*/
 
 // Stores health segmented value defined by numHealthWedges
 // When the HUD is rendered this value is 8, full health.
@@ -115,7 +115,7 @@ static struct PowerMeterHUD sBreathMeterHUD = {
 s32 sBreathMeterVisibleTimer = 0;
 #endif
 
-static struct CameraHUD sCameraHUD = { CAM_STATUS_NONE };
+//static struct CameraHUD sCameraHUD = { CAM_STATUS_NONE };
 
 /**
  * Renders a rgba16 16x16 glyph texture from a table list.
@@ -229,14 +229,14 @@ void handle_power_meter_actions(s16 numHealthWedges) {
 
 #ifndef BREATH_METER
     // If Mario is swimming, keep power meter visible
-    if (gPlayerCameraState->action & ACT_FLAG_SWIMMING) {
+    /*if (gPlayerCameraState->action & ACT_FLAG_SWIMMING) {
         if (sPowerMeterHUD.animation == POWER_METER_HIDDEN
             || sPowerMeterHUD.animation == POWER_METER_EMPHASIZED) {
             sPowerMeterHUD.animation = POWER_METER_DEEMPHASIZING;
             sPowerMeterHUD.y = HUD_POWER_METER_EMPHASIZED_Y;
         }
         sPowerMeterVisibleTimer = 0;
-    }
+    }*/
 #endif
 }
 
@@ -426,9 +426,9 @@ void render_hud_keys(void) {
  * Sets HUD status camera value depending of the actions
  * defined in update_camera_status.
  */
-void set_hud_camera_status(s16 status) {
+/*void set_hud_camera_status(s16 status) {
     sCameraHUD.status = status;
-}
+}*/
 
 /**
  * Render HUD strings using hudDisplayFlags with it's render functions,
@@ -466,9 +466,9 @@ void render_hud(void) {
 		
 		render_hud_keys();
 		
-        if (gCurrentArea != NULL && gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
+        /*if (gCurrentArea != NULL && gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
             render_hud_cannon_reticle();
-        }
+        }*/
 		
 		render_hud_luigi_health();
 

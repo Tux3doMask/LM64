@@ -31,13 +31,13 @@
 // #define PUPPYPRINT
 
 // Disable AA (Improves console performance but causes visible seams between unconnected geometry).
-// #define DISABLE_AA
+#define DISABLE_AA
 
 // Makes the coins ia8 64x64 instead of ia16 32x32. Uses new ia8 textures so that vanilla coins look better.
 #define IA8_COINS
 
 // Similar to the above, but 30 FPS (Textures by InTheBeef, cleaned up by Arceveti)
-//#define IA8_30FPS_COINS
+#define IA8_30FPS_COINS
 
 // Use .rej microcode for certain objects (experimental - only should be used when F3DEX_GBI_2 is defined).
 // For advanced users only. Does not work perfectly out the box, best used when exported actor models are
@@ -55,7 +55,7 @@
 // #define SILHOUETTE 127
 
 // Use 64x64 quarter shadow textures (Vanilla are 16x16).
-//#define HD_SHADOWS
+// #define HD_SHADOWS
 
 // Makes certain objects (mainly trees) transparent when the camera gets close.
 // #define OBJ_OPACITY_BY_CAM_DIST
@@ -64,7 +64,7 @@
 #define BURN_SMOKE_FIX
 
 // Disable the fix to Koopa's unshelled model.
-//#define KOOPA_KEEP_PINK_SHORTS
+// #define KOOPA_KEEP_PINK_SHORTS
 
 // Lightweight directional lighting engine by Fazana. Intended for giving proximity and positional pointlights to small objects.
 // NOTE: Stil breaks occasionally, and PUPPYLIGHT_NODE doesn't work in areas that aren't area 1.

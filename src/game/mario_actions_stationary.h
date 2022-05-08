@@ -60,7 +60,7 @@ s32 act_standing_against_wall(struct MarioState *m);
 s32 act_in_quicksand(struct MarioState *m);
 s32 act_crouching(struct MarioState *m);
 s32 act_panting(struct MarioState *m);
-void stopping_step(struct MarioState *m, s32 animID, u32 action);
+//void stopping_step(struct MarioState *m, s32 animID, u32 action);
 s32 act_braking_stop(struct MarioState *m);
 s32 act_butt_slide_stop(struct MarioState *m);
 s32 act_hold_butt_slide_stop(struct MarioState *m);

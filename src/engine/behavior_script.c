@@ -15,7 +15,7 @@
 #include "graph_node.h"
 #include "surface_collision.h"
 #include "game/puppylights.h"
-#include "game/puppyprint.h"
+//#include "game/puppyprint.h"
 #include "game/level_update.h"
 
 // Macros for retrieving arguments from behavior scripts.
@@ -851,14 +851,14 @@ void cur_obj_update(void) {
 		o->oAngleToMario = obj_angle_to_object(o, gMarioObject);
 	}
 	
-	if (objFlags & OBJ_FLAG_VACUUM_LATCHABLE &&
-		!(gMarioObject->oPoltergustStatus & POLTERGUST_GHOST_LATCHED)) {
+	if (objFlags & OBJ_FLAG_VACUUM_LATCHABLE) {
 		// code for checking if in vaccum goes here
+		f32 dx = o->oPosX - gMarioObject->oPosX;
+		f32 dy = o->oPosY - gMarioObject->oPosY;
+		f32 dz = o->oPosZ - gMarioObject->oPosZ;
+		s16 dYawToObject = atan2s(dz, dx) - gMarioObject->header.gfx.angle[1];
+		
 		if (distanceFromMario <= MAX_SUCK_DISTANCE) {
-			f32 dx = o->oPosX - gMarioObject->oPosX;
-			f32 dy = o->oPosY - gMarioObject->oPosY;
-			f32 dz = o->oPosZ - gMarioObject->oPosZ;
-			
 			// jank af code to make it seem like poltergust is tilted up or down
 			if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
 				dy -= distanceFromMario * POLTERGUST_HEIGHT_CHANGE_AMOUNT;
@@ -866,7 +866,7 @@ void cur_obj_update(void) {
 				dy += distanceFromMario * POLTERGUST_HEIGHT_CHANGE_AMOUNT;
 			}
 			
-			s16 dYawToObject = atan2s(dz, dx) - gMarioObject->header.gfx.angle[1];
+			
 			
 			if (
 			-MAX_SUCK_ANGLE <= dYawToObject && 
@@ -890,19 +890,25 @@ void cur_obj_update(void) {
 				}
 			}
 		}
-	}
-	
-	if (o->oPoltergustStatus & POLTERGUST_GHOST_LATCHED) {
-		/*gMarioObject->oPoltergustLatchedX = ;
-		gMarioObject->oPoltergustLatchedY = ;*/
-		//gMarioState->poltergustLatchedPos = {o->oPosX, o->oPosY, o->oPosZ};
-		vec3f_copy(gMarioState->poltergustLatchedPos, &o->oPosVec);
-		o->oVelY = 10.0f;
-		if (!(gPlayer1Controller->buttonDown & R_TRIG)) {
-			o->oPoltergustStatus = POLTERGUST_NOTHING;
-			gMarioObject->oPoltergustStatus =  POLTERGUST_NOTHING;
+		
+		if (o->oPoltergustStatus & POLTERGUST_GHOST_LATCHED) {
+			vec3f_copy(gMarioState->poltergustLatchedPos, &o->oPosVec);
+			o->oVelY = 10.0f;
+			if (!(gPlayer1Controller->buttonDown & R_TRIG)) {
+				o->oPoltergustStatus = POLTERGUST_NOTHING;
+			}
+		}
+		
+		if (-0x2000 <= dYawToObject && 
+			dYawToObject <= 0x2000) {
+			o->oPoltergustStatus |= POLTERGUST_GHOST_IN_FRONT;
+		} else {
+			// this just removes the POLTERGUST_GHOST_IN_FRONT flag
+			o->oPoltergustStatus &= 0xF7;
 		}
 	}
+	
+	
 
 	// If the object's action has changed, reset the action timer.
 	if (o->oAction != o->oPrevAction) {

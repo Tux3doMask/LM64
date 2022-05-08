@@ -431,8 +431,8 @@ struct MarioState {
     /*0x26*/ s16 invincTimer;
     /*0x28*/ u8 framesSinceA;
     /*0x29*/ u8 framesSinceB;
-    /*0x2A*/ u8 wallKickTimer;
-    /*0x2B*/ u8 doubleJumpTimer;
+    /*0x2A*/ //u8 wallKickTimer;
+    /*0x2B*/ //u8 doubleJumpTimer;
     /*0x2C*/ Vec3s faceAngle;
     /*0x32*/ Vec3s angleVel;
     /*0x38*/ s16 slideYaw;
@@ -447,7 +447,7 @@ struct MarioState {
     /*0x68*/ struct Surface *floor;
     /*0x6C*/ f32 ceilHeight;
     /*0x70*/ f32 floorHeight;
-    /*0x74*/ s16 floorYaw;
+    //*0x74*/ s16 floorYaw;
     #define floorAngle floorYaw
     /*0x76*/ s16 waterLevel;
     /*0x78*/ struct Object *interactObj;

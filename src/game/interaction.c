@@ -25,6 +25,8 @@
 #include "rumble_init.h"
 #include "config.h"
 
+#include "puppyprint.h"
+
 u8  sDelayInvincTimer;
 s16 sInvulnerable;
 u32 interact_coin          (struct MarioState *m, u32 interactType, struct Object *obj);
@@ -553,7 +555,7 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
 
     s16 angleToObject = mario_obj_angle_to_object(m, m->interactObj);
     s16 facingDYaw = angleToObject - m->faceAngle[1];
-    s16 remainingHealth = m->health - 0x40 * m->hurtCounter;
+    //s16 remainingHealth = m->health - 0x40 * m->hurtCounter;
 
     if (m->action & (ACT_FLAG_SWIMMING | ACT_FLAG_METAL_WATER)) {
         terrainIndex = 2;
@@ -561,6 +563,7 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
         terrainIndex = 1;
     }
 
+    // TO DO: repurpose this for different attack strengths
     /*if (remainingHealth < 0x100) {
         strengthIndex = 2;
     } else if (m->interactObj->oDamageOrCoinValue >= 4) {
@@ -590,7 +593,7 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
             mario_set_forward_vel(m, 16.0f);
         }
     }
-
+    
     if (-0x4000 <= facingDYaw && facingDYaw <= 0x4000) {
         m->forwardVel *= -1.0f;
         bonkAction = sBackwardKnockbackActions[terrainIndex][strengthIndex];
@@ -604,7 +607,6 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
 
 void push_mario_out_of_object(struct MarioState *m, struct Object *obj, f32 padding) {
     f32 minDistance = obj->hitboxRadius + m->marioObj->hitboxRadius + padding;
-
     f32 offsetX = m->pos[0] - obj->oPosX;
     f32 offsetZ = m->pos[2] - obj->oPosZ;
     f32 distanceSquared = (sqr(offsetX) + sqr(offsetZ));
@@ -729,7 +731,7 @@ void reset_mario_pitch(struct MarioState *m) {
 
 u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *obj) {
     m->numCoins += obj->oDamageOrCoinValue;
-    m->healCounter += 4 * obj->oDamageOrCoinValue;
+    m->healCounter += 5 * obj->oDamageOrCoinValue;
 #ifdef BREATH_METER
     m->breathCounter += (4 * obj->oDamageOrCoinValue);
 #endif
@@ -754,7 +756,7 @@ u32 interact_water_ring(struct MarioState *m, UNUSED u32 interactType, struct Ob
 #ifdef BREATH_METER
     m->breathCounter += 4 * obj->oDamageOrCoinValue;
 #else
-    m->healCounter += 4 * obj->oDamageOrCoinValue;
+    m->healCounter += 5 * obj->oDamageOrCoinValue;
 #endif
     obj->oInteractStatus = INT_STATUS_INTERACTED;
     return FALSE;
@@ -778,7 +780,7 @@ u32 interact_star_or_key(struct MarioState *m, UNUSED u32 interactType, struct O
 
 #ifdef POWER_STARS_HEAL
         m->hurtCounter = 0;
-        m->healCounter = 31;
+        m->healCounter = 99;
  #ifdef BREATH_METER
         m->breathCounter = 31;
  #endif
@@ -1892,7 +1894,7 @@ void mario_handle_special_floors(struct MarioState *m) {
 
         switch (floorType) {
             case SURFACE_DEATH_PLANE:
-            case SURFACE_VERTICAL_WIND:
+            //case SURFACE_VERTICAL_WIND:
                 check_death_barrier(m);
                 break;
 
